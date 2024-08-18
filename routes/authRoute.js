@@ -285,7 +285,7 @@ router.post("/refresh-token", async (req, res) => {
     return res.status(200).json({ accessToken: newToken });
   } catch (error) {
     console.log(error);
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 });
 router.get("/user", validateAccessToken, async (req, res) => {
@@ -302,7 +302,6 @@ router.get("/user", validateAccessToken, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      success: false,
       message: "An error occurred while retrieving user information.",
     });
   }
@@ -319,10 +318,9 @@ router.post(
 
       const user = await User.findOne({ email });
       if (!user) {
-        return res.status(404).send("User not found");
+        return res.status(404).json({ message: "User not found" });
       }
 
-      
       user.image = imagePath;
       await user.save();
       user.password = undefined;
@@ -332,7 +330,9 @@ router.post(
         .json({ message: "Photo Updated Successfully", user });
     } catch (error) {
       console.error(error);
-      return res.status(500).send("An error occurred while uploading the file");
+      return res
+        .status(500)
+        .json({ message: "An error occurred while uploading the file" });
     }
   }
 );
@@ -351,7 +351,7 @@ router.put("/edit-account", validateAccessToken, async (req, res) => {
     return res.status(200).json({ message: "User successfullt edited", user });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ error: "Internal server error" });
+    return res.status(400).json({ message: "Internal server error" });
   }
 });
 
