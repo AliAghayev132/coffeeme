@@ -336,7 +336,7 @@ router.post(
     }
   }
 );
-router.put("/edit-account", validateAccessToken, async (req, res) => {
+router.post("/edit-account", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const data = req.body;
