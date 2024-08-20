@@ -75,7 +75,7 @@ router.get("/nearest", async (req, res) => {
       );
 
       return {
-        ...shop.toObject(),
+        ...shop,
         walkingTimes,
       };
     });
