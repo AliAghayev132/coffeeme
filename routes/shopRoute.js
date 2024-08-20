@@ -175,7 +175,6 @@ router.post(
     }
   }
 );
-module.exports = router;
 router.delete("/delete", async (req, res) => {
   try {
     const { id } = req.query;
