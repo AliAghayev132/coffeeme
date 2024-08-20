@@ -9,7 +9,7 @@ const calculateWalkingTimes = require("../utils/calculateWalkingTimes");
 const path = require("path");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = path.join(__dirname, '../public/uploads/temp');
+    const dir = '../public/uploads/temp';
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -135,7 +135,7 @@ router.post(
       // Shop kaydını kaydediyoruz
       await newShop.save();
 
-      const shopDir = path.join(__dirname, `../public/uploads/${newShop._id}`);
+      const shopDir = `../public/uploads/${newShop._id}`;
 
       // Shop ID ile yeni bir klasör oluşturuyoruz
       if (!fs.existsSync(shopDir)) {
