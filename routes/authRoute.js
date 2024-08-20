@@ -106,7 +106,7 @@ router.post("/verify-otp", async (req, res) => {
     await Otp.deleteOne({ email });
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -142,7 +142,7 @@ router.put("/change-password", validateAccessToken, async (req, res) => {
     await user.save();
     return res.status(200).json({ message: "Password successfully changed" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -163,7 +163,7 @@ router.post("/forgot-password", async (req, res) => {
     await Otp.create({ email, otp, phone: existingUser.phone });
     return res.status(200).json({ message: "Otp sent successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(400).json({ error: "Internal server error" });
   }
 });
@@ -266,7 +266,7 @@ router.post("/login", async (req, res) => {
     );
     return res.status(200).json({ refreshToken, accessToken, user });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(400).json({ error: "Internal server error" });
   }
 });
@@ -284,7 +284,7 @@ router.post("/refresh-token", async (req, res) => {
     });
     return res.status(200).json({ accessToken: newToken });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 });
@@ -300,7 +300,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({
       message: "An error occurred while retrieving user information.",
     });
@@ -340,7 +340,6 @@ router.post("/edit-account", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const data = req.body;
-    console.log(data);
     const user = await User.findOneAndUpdate(
       { email },
       { ...data },
@@ -350,7 +349,7 @@ router.post("/edit-account", validateAccessToken, async (req, res) => {
     user.password = undefined;
     return res.status(200).json({ message: "User successfullt edited", user });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(400).json({ message: "Internal server error" });
   }
 });

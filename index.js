@@ -22,17 +22,11 @@ mongoose
 
 // Importing routes
 const authRouter = require("./routes/authRoute");
+const shopRouter = require("./routes/shopRoute");
 
 // Define routes
-//! For Testing
-// app.use((req, res, next) => {
-//   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-//   console.log("Headers:", req.headers);
-//   console.log("Body:", req.body);
-//   console.log("Query Params:", req.query);
-//   next();
-// });
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/shop", shopRouter);
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling
 app.listen(PORT, (err) => {
