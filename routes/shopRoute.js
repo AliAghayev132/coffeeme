@@ -9,7 +9,7 @@ const calculateWalkingTimes = require("../utils/calculateWalkingTimes");
 const path = require("path");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = '../public/uploads/temp';
+    const dir = "./public/uploads/temp";
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -66,12 +66,12 @@ router.get("/nearest", async (req, res) => {
     ]);
 
     // Yürüyüş sürelerini hesapla
-    const resultsWithTimes = shops.map(shop => {
+    const resultsWithTimes = shops.map((shop) => {
       const walkingTimes = calculateWalkingTimes(
         parseFloat(latitude),
         parseFloat(longitude),
         shop.location.coordinates[1], // mağaza enlemi
-        shop.location.coordinates[0]  // mağaza boylamı
+        shop.location.coordinates[0] // mağaza boylamı
       );
 
       return {
@@ -132,17 +132,14 @@ router.post(
         },
       });
 
-      // Shop kaydını kaydediyoruz
       await newShop.save();
 
-      const shopDir = `../public/uploads/${newShop._id}`;
+      const shopDir = `./public/uploads/${newShop._id}`;
 
-      // Shop ID ile yeni bir klasör oluşturuyoruz
       if (!fs.existsSync(shopDir)) {
         fs.mkdirSync(shopDir, { recursive: true });
       }
 
-      // Fotoğrafları Shop ID'ye göre yeniden adlandırıp klasöre taşıyoruz
       if (req.files["logo"]) {
         const logoFile = req.files["logo"][0];
         const logoExt = path.extname(logoFile.originalname);
@@ -185,10 +182,7 @@ router.delete("/delete", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
-    const shopDir = path.join(
-      __dirname,
-      `public/uploads/${deletedShop.name}`
-    );
+    const shopDir = path.join(__dirname, `public/uploads/${deletedShop.name}`);
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
