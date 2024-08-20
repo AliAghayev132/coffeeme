@@ -14,10 +14,12 @@ const shopSchema = new Schema({
   logo: {
     type: String,
     default: null,
+    required: false,
   },
   photo: {
     type: String,
     default: null,
+    required: false,
   },
   location: {
     type: {

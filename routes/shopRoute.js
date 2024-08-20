@@ -8,9 +8,7 @@ const validateAccessToken = require("../middlewares/validateToken");
 const path = require("path");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const baseDir = path.join(__dirname, "../public/uploads"); // ".." ile üst dizine çıkın
-    const shopName = req.body.name || "default";
-    const dir = path.join(baseDir, shopName);
+    const dir = path.join(__dirname, '../public/uploads/temp');
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -23,8 +21,8 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const fileName =
       file.fieldname === "logo"
-        ? `${req.body.name}_logo_${timestamp}${ext}`
-        : `${req.body.name}_photo_${timestamp}${ext}`;
+        ? `logo_${timestamp}${ext}`
+        : `photo_${timestamp}${ext}`;
     cb(null, fileName);
   },
 });
@@ -41,18 +39,10 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-// router.get("/", async (req, res) => {
-//   try {
-//     const shops = await Shop.find();
-//     return res.status(201).json({ success: true, shops });
-//   } catch (error) {
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// });
 router.get("/nearest", async (req, res) => {
   try {
     const { longitude, latitude } = req.query;
-    
+
     if (!longitude || !latitude) {
       return res
         .status(400)
@@ -76,7 +66,7 @@ router.get("/nearest", async (req, res) => {
 
     return res.status(200).json({ shops });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -105,11 +95,10 @@ router.get("/find-product", async (req, res) => {
 // Shop
 router.post(
   "/add",
-  upload.fields([{ name: "logo" }, { name: "photo" }]),
+  upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
   async (req, res) => {
     try {
-      // Form verilerini kontrol edin
-      const { name, longitude, address, latitude } = req.body;
+      const { name, longitude, latitude, address } = req.body;
 
       if (!name || !longitude || !latitude) {
         return res
@@ -117,7 +106,7 @@ router.post(
           .json({ error: "Name, longitude, and latitude are required" });
       }
 
-      // Shop'u veri tabanına kaydet
+      // Yeni Shop kaydı oluşturulur
       const newShop = new Shop({
         address,
         name,
@@ -125,14 +114,40 @@ router.post(
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
         },
-        // Logo ve foto yollarını kaydet
-        logo: req.files["logo"]
-          ? `/uploads/coffeeshop/${name}/${req.files["logo"][0].filename}`
-          : null,
-        photo: req.files["photo"]
-          ? `/uploads/coffeeshop/${name}/${req.files["photo"][0].filename}`
-          : null,
       });
+
+      // Shop kaydını kaydediyoruz
+      await newShop.save();
+
+      const shopDir = path.join(__dirname, `../public/uploads/${newShop._id}`);
+
+      // Shop ID ile yeni bir klasör oluşturuyoruz
+      if (!fs.existsSync(shopDir)) {
+        fs.mkdirSync(shopDir, { recursive: true });
+      }
+
+      // Fotoğrafları Shop ID'ye göre yeniden adlandırıp klasöre taşıyoruz
+      if (req.files["logo"]) {
+        const logoFile = req.files["logo"][0];
+        const logoExt = path.extname(logoFile.originalname);
+        const newLogoName = `${newShop._id}Logo${logoExt}`;
+        const newLogoPath = path.join(shopDir, newLogoName);
+
+        fs.renameSync(logoFile.path, newLogoPath);
+        newShop.logo = `${newShop._id}/${newLogoName}`;
+      }
+
+      if (req.files["photo"]) {
+        const photoFile = req.files["photo"][0];
+        const photoExt = path.extname(photoFile.originalname);
+        const newPhotoName = `${newShop._id}Photo${photoExt}`;
+        const newPhotoPath = path.join(shopDir, newPhotoName);
+
+        fs.renameSync(photoFile.path, newPhotoPath);
+        newShop.photo = `${newShop._id}/${newPhotoName}`;
+      }
+
+      // Shop kaydını güncelleriz
       await newShop.save();
 
       return res
@@ -144,6 +159,8 @@ router.post(
     }
   }
 );
+
+module.exports = router;
 router.delete("/delete", async (req, res) => {
   try {
     const { id } = req.query;
@@ -161,14 +178,12 @@ router.delete("/delete", async (req, res) => {
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
-    return res
-      .status(200)
-      .json({
-        data: deletedShop,
-        message: "Shop and associated files deleted successfully",
-      });
+    return res.status(200).json({
+      data: deletedShop,
+      message: "Shop and associated files deleted successfully",
+    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
