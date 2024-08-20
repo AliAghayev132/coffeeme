@@ -33,7 +33,7 @@ const upload = multer({ storage: storage });
 
 //? For User
 //Shop
-router.get("/",validateAccessToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const shops = await Shop.find();
     return res.status(201).json({ success: true, shops });
@@ -41,7 +41,7 @@ router.get("/",validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/",validateAccessToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const shops = await Shop.find();
     return res.status(201).json({ success: true, shops });
@@ -49,7 +49,7 @@ router.get("/",validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/nearest",validateAccessToken, async (req, res) => {
+router.get("/nearest", async (req, res) => {
   try {
     const { longitude, latitude } = req.query;
     
@@ -81,7 +81,7 @@ router.get("/nearest",validateAccessToken, async (req, res) => {
   }
 });
 // Products
-router.get("/find-product",validateAccessToken, async (req, res) => {
+router.get("/find-product", async (req, res) => {
   try {
     const { name } = req.query;
     if (!name || name.length < 3) {
