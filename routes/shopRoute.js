@@ -41,14 +41,14 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/", async (req, res) => {
-  try {
-    const shops = await Shop.find();
-    return res.status(201).json({ success: true, shops });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+// router.get("/", async (req, res) => {
+//   try {
+//     const shops = await Shop.find();
+//     return res.status(201).json({ success: true, shops });
+//   } catch (error) {
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 router.get("/nearest", async (req, res) => {
   try {
     const { longitude, latitude } = req.query;
