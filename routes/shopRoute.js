@@ -187,7 +187,7 @@ router.delete("/delete", async (req, res) => {
     }
     const shopDir = path.join(
       __dirname,
-      `public/uploads/coffeeshop/${deletedShop.name}`
+      `public/uploads/${deletedShop.name}`
     );
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
