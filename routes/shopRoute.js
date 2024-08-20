@@ -5,6 +5,7 @@ const Product = require("../schemas/Product");
 const multer = require("multer");
 const fs = require("fs");
 const validateAccessToken = require("../middlewares/validateToken");
+const calculateWalkingTimes = require("../utils/calculateWalkingTimes");
 const path = require("path");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -41,7 +42,7 @@ router.get("/", async (req, res) => {
 });
 router.get("/nearest", async (req, res) => {
   try {
-    const { longitude, latitude } = req.query;
+    const { latitude, longitude } = req.query;
 
     if (!longitude || !latitude) {
       return res
@@ -64,7 +65,22 @@ router.get("/nearest", async (req, res) => {
       { $limit: 5 },
     ]);
 
-    return res.status(200).json({ shops });
+    // Yürüyüş sürelerini hesapla
+    const resultsWithTimes = shops.map(shop => {
+      const walkingTimes = calculateWalkingTimes(
+        parseFloat(latitude),
+        parseFloat(longitude),
+        shop.location.coordinates[1], // mağaza enlemi
+        shop.location.coordinates[0]  // mağaza boylamı
+      );
+
+      return {
+        ...shop.toObject(),
+        walkingTimes,
+      };
+    });
+
+    return res.status(200).json({ shops: resultsWithTimes });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
@@ -159,7 +175,6 @@ router.post(
     }
   }
 );
-
 module.exports = router;
 router.delete("/delete", async (req, res) => {
   try {
