@@ -10,9 +10,7 @@ const path = require("path");
 const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = path.join(
-      `./public/uploads/shops/${req.body.name}-${req.body.address}/`
-    );
+    const dir = `./public/uploads/shops/${req.body.name}-${req.body.address}/`;
 
     // Dizin var mı kontrol et, yoksa oluştur
     if (!fs.existsSync(dir)) {
@@ -119,6 +117,7 @@ router.post(
           .status(400)
           .json({ error: "Name, longitude, and latitude are required" });
       }
+      console.log(req.files.logo[0].filename);
 
       const newShop = new Shop({
         address,
