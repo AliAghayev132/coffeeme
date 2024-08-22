@@ -130,6 +130,7 @@ router.post(
         photo: req.files.photo ? req.files.photo[0].filename : "",
       });
 
+      console.log(newShop);
       await newShop.save();
 
       return res
