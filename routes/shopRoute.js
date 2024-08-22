@@ -10,7 +10,7 @@ const path = require("path");
 const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = `../public/uploads/shops/${req.body.name}-${req.body.address}/`;
+    const dir = `public/uploads/shops/${req.body.name}-${req.body.address}`;
 
     // Dizin var mı kontrol et, yoksa oluştur
     if (!fs.existsSync(dir)) {
@@ -112,12 +112,11 @@ router.post(
     try {
       const { name, longitude, latitude, address } = req.body;
 
-      if (!name || !longitude || !latitude) {
+      if (!name || !longitude || !latitude || !address) {
         return res
           .status(400)
-          .json({ error: "Name, longitude, and latitude are required" });
+          .json({ error: "Name, longitude, address and latitude are required" });
       }
-      console.log(req.files.logo[0].filename);
 
       const newShop = new Shop({
         address,
@@ -130,8 +129,6 @@ router.post(
         photo: req.files.photo ? req.files.photo[0].filename : "",
       });
 
-      console.log(newShop);
-      
       await newShop.save();
 
       return res
@@ -143,9 +140,11 @@ router.post(
     }
   }
 );
-router.delete("/delete", async (req, res) => {
+
+router.delete("/delete/:id", async (req, res) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
+    console.log(id);
     if (!id) {
       return res.status(400).json({ error: "ID is required" });
     }
@@ -153,10 +152,7 @@ router.delete("/delete", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
-    const shopDir = path.join(
-      __dirname,
-      `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`
-    );
+    const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
@@ -182,6 +178,8 @@ router.put(
         return res.status(404).json({ error: "Shop not found" });
       }
 
+      const oldDir = `public/uploads/shops/${shop.name}-${shop.address}`;
+
       if (name) shop.name = name;
       if (longitude && latitude) {
         shop.location = {
@@ -191,38 +189,49 @@ router.put(
       }
       if (address) shop.address = address;
 
+      const newDir = `public/uploads/shops/${shop.name}-${shop.address}`;
+
+      if (oldDir !== newDir) {
+        if (fs.existsSync(oldDir)) {
+          if (!fs.existsSync(newDir)) {
+            fs.mkdirSync(newDir, { recursive: true });
+          }
+
+          const files = fs.readdirSync(oldDir);
+          files.forEach((file) => {
+            fs.renameSync(path.join(oldDir, file), path.join(newDir, file));
+          });
+
+          fs.rmdirSync(oldDir);
+        }
+      }
+
       if (req.files["logo"]) {
         const logoFile = req.files["logo"][0];
 
         if (shop.logo) {
-          const oldLogoPath = path.join(
-            __dirname,
-            "/public/uploads/shops/",
-            shop.logo
-          );
+          const oldLogoPath = path.join(newDir, shop.logo);
           if (fs.existsSync(oldLogoPath)) {
             fs.unlinkSync(oldLogoPath);
           }
         }
 
         shop.logo = logoFile.filename;
+        fs.renameSync(logoFile.path, path.join(newDir, logoFile.filename));
       }
 
       if (req.files["photo"]) {
         const photoFile = req.files["photo"][0];
 
         if (shop.photo) {
-          const oldPhotoPath = path.join(
-            __dirname,
-            "/public/uploads/shops",
-            shop.photo
-          );
+          const oldPhotoPath = path.join(newDir, shop.photo);
           if (fs.existsSync(oldPhotoPath)) {
             fs.unlinkSync(oldPhotoPath);
           }
         }
 
         shop.photo = photoFile.filename;
+        fs.renameSync(photoFile.path, path.join(newDir, photoFile.filename));
       }
 
       await shop.save();
