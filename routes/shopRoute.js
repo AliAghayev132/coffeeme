@@ -171,11 +171,12 @@ router.delete("/delete", async (req, res) => {
   }
 });
 router.put(
-  "/edit",
+  "/edit/:id",
   upload.fields([{ name: "logo" }, { name: "photo" }]),
   async (req, res) => {
     try {
-      const { id, name, longitude, latitude, address } = req.body;
+      const {id} = req.params
+      const {name, longitude, latitude, address } = req.body;
 
       const shop = await Shop.findById(id);
       if (!shop) {
