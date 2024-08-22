@@ -10,7 +10,10 @@ const path = require("path");
 const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = path.join(__dirname, `public/uploads/shops/${req.body.name}-${req.body.address}/`);
+    const dir = path.join(
+      __dirname,
+      `public/uploads/shops/${req.body.name}-${req.body.address}/`
+    );
 
     // Dizin var mı kontrol et, yoksa oluştur
     if (!fs.existsSync(dir)) {
@@ -126,12 +129,12 @@ router.post(
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
         },
-        logo: req.files.logo ? req.files.logo[0].path : '',  
-        photo: req.files.photo ? req.files.photo[0].path : ''
+        logo: req.files.logo ? req.files.logo[0].path : "",
+        photo: req.files.photo ? req.files.photo[0].path : "",
       });
 
       await newShop.save();
-      
+
       return res
         .status(201)
         .json({ data: newShop, message: "Shop added successfully" });
@@ -151,7 +154,10 @@ router.delete("/delete", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
-    const shopDir = path.join(__dirname, `public/uploads/${deletedShop.name}-${deletedShop.address}`);
+    const shopDir = path.join(
+      __dirname,
+      `public/uploads/${deletedShop.name}-${deletedShop.address}`
+    );
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
@@ -169,8 +175,70 @@ router.put(
   upload.fields([{ name: "logo" }, { name: "photo" }]),
   async (req, res) => {
     try {
+      const { id, name, longitude, latitude, address } = req.body;
+
+      const shop = await Shop.findById(id);
+      if (!shop) {
+        return res.status(404).json({ error: "Shop not found" });
+      }
+
+      if (name) shop.name = name;
+      if (longitude && latitude) {
+        shop.location = {
+          type: "Point",
+          coordinates: [parseFloat(longitude), parseFloat(latitude)],
+        };
+      }
+      if (address) shop.address = address;
+
+      // Eğer yeni bir logo dosyası sağlanmışsa, eski dosyayı sil ve yenisiyle değiştir
+      if (req.files["logo"]) {
+        const logoFile = req.files["logo"][0];
+
+        // Eski logo dosyasını sil
+        if (shop.logo) {
+          const oldLogoPath = path.join(
+            __dirname,
+            "../public/uploads",
+            shop.logo
+          );
+          if (fs.existsSync(oldLogoPath)) {
+            fs.unlinkSync(oldLogoPath);
+          }
+        }
+
+        // Yeni logo dosyasını kaydet
+        shop.logo = logoFile.path;
+      }
+
+      // Eğer yeni bir fotoğraf dosyası sağlanmışsa, eski dosyayı sil ve yenisiyle değiştir
+      if (req.files["photo"]) {
+        const photoFile = req.files["photo"][0];
+
+        // Eski fotoğraf dosyasını sil
+        if (shop.photo) {
+          const oldPhotoPath = path.join(
+            __dirname,
+            "../public/uploads",
+            shop.photo
+          );
+          if (fs.existsSync(oldPhotoPath)) {
+            fs.unlinkSync(oldPhotoPath);
+          }
+        }
+
+        // Yeni fotoğraf dosyasını kaydet
+        shop.photo = photoFile.path;
+      }
+
+      await shop.save();
+
+      return res
+        .status(200)
+        .json({ data: shop, message: "Shop updated successfully" });
     } catch (error) {
       console.error(error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   }
 );
@@ -242,6 +310,5 @@ router.delete("/delete-product", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 module.exports = router;
