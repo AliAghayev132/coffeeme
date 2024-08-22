@@ -20,7 +20,7 @@ router.get("/users/premium", async (req, res) => {
     const users = await User.find({ category: "premium" });
     return res
       .status(200)
-      .json({ data: users, message: "All users returned successfully" });
+      .json({ users, message: "All users returned successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
