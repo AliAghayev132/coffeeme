@@ -10,7 +10,9 @@ const path = require("path");
 const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = "./public/uploads/temp";
+    const dir = path.join(__dirname, `public/uploads/shops/${req.body.name}-${req.body.address}/`);
+
+    // Dizin var mı kontrol et, yoksa oluştur
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -18,13 +20,7 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const timestamp = Date.now();
-    const fileName =
-      file.fieldname === "logo"
-        ? `logo_${timestamp}${ext}`
-        : `photo_${timestamp}${ext}`;
-    cb(null, fileName);
+    cb(null, Date.now() + "_" + file.originalname.toLowerCase());
   },
 });
 
@@ -130,39 +126,12 @@ router.post(
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
         },
+        logo: req.files.logo ? req.files.logo[0].path : '',  
+        photo: req.files.photo ? req.files.photo[0].path : ''
       });
 
       await newShop.save();
-
-      const shopDir = `./public/uploads/${newShop._id}`;
-
-      if (!fs.existsSync(shopDir)) {
-        fs.mkdirSync(shopDir, { recursive: true });
-      }
-
-      if (req.files["logo"]) {
-        const logoFile = req.files["logo"][0];
-        const logoExt = path.extname(logoFile.originalname);
-        const newLogoName = `${newShop._id}Logo${logoExt}`;
-        const newLogoPath = path.join(shopDir, newLogoName);
-
-        fs.renameSync(logoFile.path, newLogoPath);
-        newShop.logo = `${newShop._id}/${newLogoName}`;
-      }
-
-      if (req.files["photo"]) {
-        const photoFile = req.files["photo"][0];
-        const photoExt = path.extname(photoFile.originalname);
-        const newPhotoName = `${newShop._id}Photo${photoExt}`;
-        const newPhotoPath = path.join(shopDir, newPhotoName);
-
-        fs.renameSync(photoFile.path, newPhotoPath);
-        newShop.photo = `${newShop._id}/${newPhotoName}`;
-      }
-
-      // Shop kaydını güncelleriz
-      await newShop.save();
-
+      
       return res
         .status(201)
         .json({ data: newShop, message: "Shop added successfully" });
@@ -182,7 +151,7 @@ router.delete("/delete", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
-    const shopDir = path.join(__dirname, `public/uploads/${deletedShop.name}`);
+    const shopDir = path.join(__dirname, `public/uploads/${deletedShop.name}-${deletedShop.address}`);
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
