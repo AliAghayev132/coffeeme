@@ -29,10 +29,12 @@ mongoose
 // Importing routes
 const authRouter = require("./routes/authRoute");
 const shopRouter = require("./routes/shopRoute");
+const adminRouter = require("./routes/adminRoute");
 
 // Define routes
 app.use("/api/auth", authRouter);
 app.use("/api/shop", shopRouter);
+app.use("/api/admin", adminRouter);
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling
 app.listen(PORT, (err) => {

@@ -7,10 +7,10 @@ const fs = require("fs");
 const validateAccessToken = require("../middlewares/validateToken");
 const calculateWalkingTimes = require("../utils/calculateWalkingTimes");
 const path = require("path");
+const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = "./public/uploads/temp";
-
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -195,6 +195,17 @@ router.delete("/delete", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.put(
+  "/edit",
+  upload.fields([{ name: "logo" }, { name: "photo" }]),
+  async (req, res) => {
+    try {
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
+
 // Products
 router.post("/add-product", async (req, res) => {
   try {
@@ -262,4 +273,6 @@ router.delete("/delete-product", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 module.exports = router;
