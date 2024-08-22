@@ -11,8 +11,7 @@ const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = path.join(
-      __dirname,
-      `public/uploads/shops/${req.body.name}-${req.body.address}/`
+      `./public/uploads/shops/${req.body.name}-${req.body.address}/`
     );
 
     // Dizin var mı kontrol et, yoksa oluştur
@@ -121,7 +120,6 @@ router.post(
           .json({ error: "Name, longitude, and latitude are required" });
       }
 
-      // Yeni Shop kaydı oluşturulur
       const newShop = new Shop({
         address,
         name,
@@ -129,8 +127,8 @@ router.post(
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
         },
-        logo: req.files.logo ? req.files.logo[0].path : "",
-        photo: req.files.photo ? req.files.photo[0].path : "",
+        logo: req.files.logo ? req.files.logo[0].filename : "",
+        photo: req.files.photo ? req.files.photo[0].filename : "",
       });
 
       await newShop.save();
@@ -156,7 +154,7 @@ router.delete("/delete", async (req, res) => {
     }
     const shopDir = path.join(
       __dirname,
-      `public/uploads/${deletedShop.name}-${deletedShop.address}`
+      `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`
     );
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
@@ -175,8 +173,8 @@ router.put(
   upload.fields([{ name: "logo" }, { name: "photo" }]),
   async (req, res) => {
     try {
-      const {id} = req.params
-      const {name, longitude, latitude, address } = req.body;
+      const { id } = req.params;
+      const { name, longitude, latitude, address } = req.body;
 
       const shop = await Shop.findById(id);
       if (!shop) {
@@ -192,15 +190,13 @@ router.put(
       }
       if (address) shop.address = address;
 
-      // Eğer yeni bir logo dosyası sağlanmışsa, eski dosyayı sil ve yenisiyle değiştir
       if (req.files["logo"]) {
         const logoFile = req.files["logo"][0];
 
-        // Eski logo dosyasını sil
         if (shop.logo) {
           const oldLogoPath = path.join(
             __dirname,
-            "../public/uploads",
+            "./public/uploads/shops/",
             shop.logo
           );
           if (fs.existsSync(oldLogoPath)) {
@@ -208,19 +204,16 @@ router.put(
           }
         }
 
-        // Yeni logo dosyasını kaydet
-        shop.logo = logoFile.path;
+        shop.logo = logoFile.filename;
       }
 
-      // Eğer yeni bir fotoğraf dosyası sağlanmışsa, eski dosyayı sil ve yenisiyle değiştir
       if (req.files["photo"]) {
         const photoFile = req.files["photo"][0];
 
-        // Eski fotoğraf dosyasını sil
         if (shop.photo) {
           const oldPhotoPath = path.join(
             __dirname,
-            "../public/uploads",
+            "./public/uploads/shops",
             shop.photo
           );
           if (fs.existsSync(oldPhotoPath)) {
@@ -228,8 +221,7 @@ router.put(
           }
         }
 
-        // Yeni fotoğraf dosyasını kaydet
-        shop.photo = photoFile.path;
+        shop.photo = photoFile.filename;
       }
 
       await shop.save();
