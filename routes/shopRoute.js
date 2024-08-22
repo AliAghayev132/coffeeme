@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 });
 router.get("/nearest", async (req, res) => {
   try {
-    const { latitude, longitude } = req.query;
+    const { latitude, longitude } = req.params;
 
     if (!longitude || !latitude) {
       return res
@@ -140,7 +140,6 @@ router.post(
     }
   }
 );
-
 router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
