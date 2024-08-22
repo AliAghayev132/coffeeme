@@ -10,7 +10,7 @@ const path = require("path");
 const User = require("../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = `./public/uploads/shops/${req.body.name}-${req.body.address}/`;
+    const dir = `../public/uploads/shops/${req.body.name}-${req.body.address}/`;
 
     // Dizin var mı kontrol et, yoksa oluştur
     if (!fs.existsSync(dir)) {
@@ -131,6 +131,7 @@ router.post(
       });
 
       console.log(newShop);
+      
       await newShop.save();
 
       return res
@@ -196,7 +197,7 @@ router.put(
         if (shop.logo) {
           const oldLogoPath = path.join(
             __dirname,
-            "./public/uploads/shops/",
+            "/public/uploads/shops/",
             shop.logo
           );
           if (fs.existsSync(oldLogoPath)) {
@@ -213,7 +214,7 @@ router.put(
         if (shop.photo) {
           const oldPhotoPath = path.join(
             __dirname,
-            "./public/uploads/shops",
+            "/public/uploads/shops",
             shop.photo
           );
           if (fs.existsSync(oldPhotoPath)) {
