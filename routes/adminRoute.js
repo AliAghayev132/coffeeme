@@ -60,7 +60,7 @@ router.delete("/user/delete", async (req, res) => {
 
 
 //Products
-router.post("/new-product/:id", upload.single("photo"), async (req, res) => {
+router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
   try {
     const { id } = req.params; // shopId
     const { name, price, discount, category, description, discountType } =
@@ -103,5 +103,6 @@ router.post("/new-product/:id", upload.single("photo"), async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 module.exports = router;
