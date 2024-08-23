@@ -14,9 +14,9 @@ const productSchema = new Schema({
     type: Number,
     required: false,
   },
-  discountedPrice:{
+  discountedPrice: {
     type: Number,
-    required: false, 
+    required: false,
   },
   category: {
     type: String,
@@ -49,6 +49,15 @@ const productSchema = new Schema({
   modifiedDate: {
     type: Date,
     default: Date.now,
+  },
+  photo: {
+    type: String,
+    required: false,
+  },
+  discountType: {
+    type: String,
+    enum: ["STANDARD_DISCOUNT", "SPECIAL_DISCOUNT"],
+    required: true,
   },
 });
 

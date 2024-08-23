@@ -2,6 +2,8 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger-output.json");
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3000;
@@ -31,10 +33,17 @@ const authRouter = require("./routes/authRoute");
 const shopRouter = require("./routes/shopRoute");
 const adminRouter = require("./routes/adminRoute");
 
+/********************
+       Swagger
+*******************/
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 // Define routes
 app.use("/api/auth", authRouter);
 app.use("/api/shop", shopRouter);
 app.use("/api/admin", adminRouter);
+
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling
 app.listen(PORT, (err) => {
