@@ -60,6 +60,16 @@ router.delete("/user/delete", async (req, res) => {
 
 
 //Products
+router.get("/products",async (req,res)=>{
+  try{
+    const products = await Product.find({});
+    return res
+    .status(201)
+    .json({ message: "Product created successfully", data: products });  }catch(error){
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
 router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
   try {
     const { id } = req.params; // shopId

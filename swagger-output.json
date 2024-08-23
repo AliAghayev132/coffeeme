@@ -1,31 +1,18 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Coffeeme Api",
+    "title": "My API",
     "description": "API Documentation",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
   "basePath": "/",
-  "schemes": ["https"],
-  "tags": [
-    {
-      "name": "auth",
-      "description": "Operations related to users"
-    },
-    {
-      "name": "shop",
-      "description": "Operations related to shop"
-    },
-    {
-      "name": "admin",
-      "description": "Operations related to admin"
-    }
+  "schemes": [
+    "http"
   ],
   "paths": {
     "/users": {
       "get": {
-        "tags": ["admin"],
         "description": "",
         "responses": {
           "200": {
@@ -39,7 +26,6 @@
     },
     "/users/premium": {
       "get": {
-        "tags": ["admin"],
         "description": "",
         "responses": {
           "200": {
@@ -53,7 +39,6 @@
     },
     "/user/delete": {
       "delete": {
-        "tags": ["admin"],
         "description": "",
         "parameters": [
           {
@@ -72,9 +57,8 @@
         }
       }
     },
-    "/new-product/{id}": {
+    "/product/new/{id}": {
       "post": {
-        "tags": ["admin"],
         "description": "",
         "parameters": [
           {
@@ -129,7 +113,6 @@
     },
     "/send-otp": {
       "post": {
-        "tags": ["auth"],
         "description": "",
         "parameters": [
           {
@@ -163,8 +146,6 @@
     },
     "/verify-otp": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -210,8 +191,6 @@
     },
     "/change-password": {
       "put": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -256,8 +235,6 @@
     },
     "/forgot-password": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -285,8 +262,6 @@
     },
     "/forgot-password-otp-confirm": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -317,8 +292,6 @@
     },
     "/forgot-password-confirm": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -355,8 +328,6 @@
     },
     "/login": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -388,8 +359,6 @@
     "/refresh-token": {
       "post": {
         "description": "",
-        "tags": ["auth"],
-
         "parameters": [
           {
             "name": "body",
@@ -416,7 +385,6 @@
     },
     "/user": {
       "get": {
-        "tags": ["auth"],
         "description": "",
         "parameters": [
           {
@@ -440,8 +408,6 @@
     },
     "/upload-image": {
       "post": {
-        "tags": ["auth"],
-
         "description": "",
         "parameters": [
           {
@@ -469,8 +435,6 @@
     "/edit-account": {
       "post": {
         "description": "",
-        "tags": ["auth"],
-
         "parameters": [
           {
             "name": "authorization",
@@ -496,7 +460,6 @@
     },
     "/": {
       "get": {
-        "tags": ["shop"],
         "description": "",
         "responses": {
           "201": {
@@ -510,8 +473,6 @@
     },
     "/nearest": {
       "get": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -540,8 +501,6 @@
     },
     "/find-product": {
       "get": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -565,8 +524,6 @@
     },
     "/add": {
       "post": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -606,8 +563,6 @@
     },
     "/delete/{id}": {
       "delete": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -635,8 +590,6 @@
     },
     "/edit/{id}": {
       "put": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -682,8 +635,6 @@
     },
     "/add-product": {
       "post": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
@@ -731,8 +682,6 @@
     },
     "/delete-product": {
       "delete": {
-        "tags": ["shop"],
-
         "description": "",
         "parameters": [
           {
