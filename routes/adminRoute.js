@@ -82,6 +82,8 @@ router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
     }
 
     const shop = await Shop.findById(id);
+    console.log({shop,id});
+    
     if (!shop) {
       return res.status(404).json({ error: "Shop not found" });
     }
@@ -128,7 +130,8 @@ router.delete("/product/delete/:id", async (req, res) => {
         .status(400)
         .json({ error: "Shop not found, but product deleted from db" });
     }
-    shop.products = shop.products.filter((p) => p !== id);
+    shop.products = shop.products.filter((p) => !p.equals(product.id));
+    
     const productDir = `public/uploads/products/${shop.id}`;
     if (fs.existsSync(productDir)) {
       fs.rmSync(productDir, { recursive: true, force: true });
