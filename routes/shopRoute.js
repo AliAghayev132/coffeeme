@@ -103,7 +103,6 @@ router.get("/find-product", async (req, res) => {
 });
 
 //! For Admin
-
 // Shop
 router.post(
   "/add",
@@ -244,73 +243,5 @@ router.put(
     }
   }
 );
-
-// Products
-router.post("/add-product", async (req, res) => {
-  try {
-    const { id } = req.query;
-    if (!id) {
-      return res.status(400).json({ error: "Id is required" });
-    }
-
-    const shop = await Shop.findById(id);
-    if (!shop) {
-      return res.status(404).json({ error: "Shop not found" });
-    }
-
-    const { name, price, discount, category } = req.body;
-    const newProduct = new Product({
-      name,
-      price,
-      discount,
-      category,
-      shop: {
-        id: shop._id,
-        name: shop.name,
-        logo: shop.logo,
-      },
-    });
-    await newProduct.save();
-
-    shop.products.push(newProduct);
-    await shop.save();
-    return res.status(201).json({
-      message: `Product added to ${shop.name} successfully`,
-      data: newProduct,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal Server error" });
-  }
-});
-router.delete("/delete-product", async (req, res) => {
-  try {
-    const { id } = req.query;
-    if (!id) {
-      return res.status(400).json({ error: "Id is required" });
-    }
-
-    const shop = await Shop.findById(id);
-    if (!shop) {
-      return res.status(404).json({ error: "Shop not found" });
-    }
-
-    const productId = req.body.productId;
-
-    if (!shop.products.includes(productId)) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-
-    shop.products = shop.products.filter(
-      (prod) => prod.toString() !== productId
-    );
-    await shop.save();
-    await Product.findByIdAndDelete(productId);
-    return res
-      .status(200)
-      .json({ message: "Product removed from shop successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 module.exports = router;

@@ -4,6 +4,8 @@ const User = require("../schemas/User");
 const multer = require("multer");
 const Product = require("../schemas/Product");
 const Shop = require("../schemas/Shop");
+const fs = require("fs");
+const { error } = require("console");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -57,19 +59,18 @@ router.delete("/user/delete", async (req, res) => {
   }
 });
 
-
-
 //Products
-router.get("/products",async (req,res)=>{
-  try{
+router.get("/products", async (req, res) => {
+  try {
     const products = await Product.find({});
     return res
-    .status(201)
-    .json({ message: "Product created successfully", data: products });  }catch(error){
+      .status(201)
+      .json({ message: "Product got successfully", data: products });
+  } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
-})
+});
 router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
   try {
     const { id } = req.params; // shopId
@@ -104,7 +105,8 @@ router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
     });
 
     await newProduct.save();
-
+    shop.products.push(newProduct);
+    await shop.save();
     return res
       .status(201)
       .json({ message: "Product created successfully", data: newProduct });
@@ -113,6 +115,33 @@ router.post("/product/new/:id", upload.single("photo"), async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.delete("/product/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(400).json({ error: "Product not found" });
+    }
+    const shop = await Shop.findById(product.shop.id);
+    if (!shop) {
+      return res
+        .status(400)
+        .json({ error: "Shop not found, but product deleted from db" });
+    }
+    shop.products = shop.products.filter((p) => p !== id);
+    const productDir = `public/uploads/products/${shop.id}`;
+    if (fs.existsSync(productDir)) {
+      fs.rmSync(productDir, { recursive: true, force: true });
+    }
 
+    await shop.save();
+    return res
+      .status(201)
+      .json({ message: "Product deleted successfully", data: product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = router;
