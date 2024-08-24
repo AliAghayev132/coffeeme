@@ -184,7 +184,11 @@ router.get('/:id', async (req, res) => {
 });
 router.get("/nearest", async (req, res) => {
   try {
-    const { latitude, longitude } = req.query;
+    const latitude = parseFloat(req.query.latitude);
+    const longitude = parseFloat(req.query.longitude);
+
+    console.log({latitude,longitude});
+    
 
     if (!longitude || !latitude) {
       return res
@@ -197,7 +201,7 @@ router.get("/nearest", async (req, res) => {
         $geoNear: {
           near: {
             type: "Point",
-            coordinates: [parseFloat(longitude), parseFloat(latitude)],
+            coordinates: [longitude,latitude],
           },
           distanceField: "distance",
           maxDistance: 50000,
