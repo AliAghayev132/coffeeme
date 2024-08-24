@@ -96,7 +96,7 @@ const upload = multer({ storage: storage });
  */
 /**
  * @swagger
- * /shop/{id}:
+ * /shops/{id}:
  *   get:
  *     summary: Get a shop by ID
  *     description: Retrieves a shop and its products by shop ID.
