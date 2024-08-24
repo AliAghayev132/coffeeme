@@ -94,7 +94,67 @@ const upload = multer({ storage: storage });
  *       500:
  *         description: Internal server error
  */
-
+/**
+ * @swagger
+ * /shop/{id}:
+ *   get:
+ *     summary: Get a shop by ID
+ *     description: Retrieves a shop and its products by shop ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the shop to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved shop
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Successfully got shop
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: ID of the shop
+ *                       example: 60d6f6c7d42b4f001c8d1b08
+ *                     name:
+ *                       type: string
+ *                       description: Name of the shop
+ *                       example: Coffee Shop
+ *                     address:
+ *                       type: string
+ *                       description: Address of the shop
+ *                       example: 123 Coffee St
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             description: ID of the product
+ *                             example: 60d6f6c7d42b4f001c8d1b09
+ *                           name:
+ *                             type: string
+ *                             description: Name of the product
+ *                             example: Espresso
+ *                           price:
+ *                             type: number
+ *                             description: Price of the product
+ *                             example: 2.99
+ *       404:
+ *         description: Shop not found
+ *       500:
+ *         description: Internal server error
+ */
 //? ********************
 //?        Users
 //? ********************
@@ -105,6 +165,21 @@ router.get("/", async (req, res) => {
     return res.status(201).json({ success: true, shops });
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const shop = await Shop.findById(id).populate('products'); // Populate the products field
+
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    return res.status(200).json({ message:"Successfully got shop",data:shop });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 router.get("/nearest", async (req, res) => {
