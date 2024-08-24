@@ -167,27 +167,10 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const shop = await Shop.findById(id).populate('products'); // Populate the products field
-
-    if (!shop) {
-      return res.status(404).json({ error: 'Shop not found' });
-    }
-
-    return res.status(200).json({ message:"Successfully got shop",data:shop });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
 router.get("/nearest", async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
     const longitude = parseFloat(req.query.longitude);
-
-    console.log({latitude,longitude});
 
     if (!longitude || !latitude) {
       return res
@@ -231,6 +214,23 @@ router.get("/nearest", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const shop = await Shop.findById(id).populate('products'); // Populate the products field
+
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    return res.status(200).json({ message:"Successfully got shop",data:shop });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Products
 // router.get("/find-product", async (req, res) => {
