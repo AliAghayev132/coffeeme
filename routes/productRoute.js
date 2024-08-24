@@ -135,17 +135,7 @@ const upload = multer({ storage: storage });
 //!        Admin
 //! ********************
 
-router.get("/", async (req, res) => {
-  try {
-    const products = await Product.find({});
-    return res
-      .status(201)
-      .json({ message: "Product got successfully", data: products });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+
 router.post("/:id", upload.single("photo"), async (req, res) => {
   try {
     const { id } = req.params; // shopId
@@ -221,5 +211,15 @@ router.delete("/:id", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
+router.get("/", async (req, res) => {
+  try {
+    const products = await Product.find({});
+    return res
+      .status(201)
+      .json({ message: "Product got successfully", data: products });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 module.exports = router;

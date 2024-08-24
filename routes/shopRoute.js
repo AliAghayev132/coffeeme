@@ -159,14 +159,7 @@ const upload = multer({ storage: storage });
 //?        Users
 //? ********************
 
-router.get("/", async (req, res) => {
-  try {
-    const shops = await Shop.find();
-    return res.status(201).json({ success: true, shops });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+
 router.get("/nearest", async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
@@ -217,20 +210,26 @@ router.get("/nearest", async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
     const shop = await Shop.findById(id).populate('products'); // Populate the products field
 
     if (!shop) {
       return res.status(404).json({ error: 'Shop not found' });
     }
 
-    return res.status(200).json({ message:"Successfully got shop",data:shop });
+    return res.status(200).json({ message:"Successfully got shop",shop });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+router.get("/", async (req, res) => {
+  try {
+    const shops = await Shop.find();
+    return res.status(201).json({ success: true, shops });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 // Products
 // router.get("/find-product", async (req, res) => {
