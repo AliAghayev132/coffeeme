@@ -23,11 +23,82 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "_" + file.originalname.toLowerCase());
   },
 });
-
 const upload = multer({ storage: storage });
 
-//? For User
-//Shop
+
+//NOTE: Endpoints For Shops
+
+/**
+ * @swagger
+ * /shops:
+ *   get:
+ *     summary: Get all shops
+ *     tags: [Shops]
+ *     responses:
+ *       200:
+ *         description: A list of all shops
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 shops:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shop'
+ *       500:
+ *         description: Internal server error
+ */
+/**
+ * @swagger
+ * /shops/nearest:
+ *   get:
+ *     summary: Get nearest shops based on user's location
+ *     tags: [Shops]
+ *     parameters:
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User's latitude
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: User's longitude
+ *     responses:
+ *       200:
+ *         description: A list of nearest shops with walking times
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 shops:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       shop:
+ *                         $ref: '#/components/schemas/Shop'
+ *                       walkingTimes:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *       400:
+ *         description: Longitude and latitude are required
+ *       500:
+ *         description: Internal server error
+ */
+
+//? ********************
+//?        Users
+//? ********************
+
 router.get("/", async (req, res) => {
   try {
     const shops = await Shop.find();
@@ -82,30 +153,143 @@ router.get("/nearest", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-// Products
-router.get("/find-product", async (req, res) => {
-  try {
-    const { name } = req.query;
-    if (!name || name.length < 3) {
-      return res.status(400).json({
-        error: "Name must be provided and at least 3 characters long",
-      });
-    }
-    const products = await Product.find({
-      name: { $regex: name, $options: "i" },
-    });
-    return res.status(200).json({ data: products });
-  } catch (error) {
-    return res.status(500).json({
-      error: "Internal server error",
-    });
-  }
-});
 
-//! For Admin
-// Shop
+// Products
+// router.get("/find-product", async (req, res) => {
+//   try {
+//     const { name } = req.query;
+//     if (!name || name.length < 3) {
+//       return res.status(400).json({
+//         error: "Name must be provided and at least 3 characters long",
+//       });
+//     }
+//     const products = await Product.find({
+//       name: { $regex: name, $options: "i" },
+//     });
+//     return res.status(200).json({ data: products });
+//   } catch (error) {
+//     return res.status(500).json({
+//       error: "Internal server error",
+//     });
+//   }
+// });
+
+//! ********************
+//!        Admin
+//! ********************
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Shops
+ *   description: Shop management API
+ */
+/**
+ * @swagger
+ * /shops:
+ *   post:
+ *     summary: Create a new shop
+ *     tags: [Shops]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               longitude:
+ *                 type: string
+ *               latitude:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Shop added successfully
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+/**
+ * @swagger
+ * /shops/{id}:
+ *   delete:
+ *     summary: Delete a shop
+ *     tags: [Shops]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The shop id
+ *     responses:
+ *       200:
+ *         description: Shop deleted successfully
+ *       400:
+ *         description: ID is required
+ *       404:
+ *         description: Shop not found
+ *       500:
+ *         description: Internal server error
+ */
+/**
+ * @swagger
+ * /shops/{id}:
+ *   put:
+ *     summary: Update a shop
+ *     tags: [Shops]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The shop id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               longitude:
+ *                 type: string
+ *               latitude:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Shop updated successfully
+ *       400:
+ *         description: Bad request
+ *       404:
+ *         description: Shop not found
+ *       500:
+ *         description: Internal server error
+ */
+
 router.post(
-  "/add",
+  "/",
   upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
   async (req, res) => {
     try {
@@ -114,7 +298,9 @@ router.post(
       if (!name || !longitude || !latitude || !address) {
         return res
           .status(400)
-          .json({ error: "Name, longitude, address and latitude are required" });
+          .json({
+            error: "Name, longitude, address and latitude are required",
+          });
       }
 
       const newShop = new Shop({
@@ -139,10 +325,9 @@ router.post(
     }
   }
 );
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
     if (!id) {
       return res.status(400).json({ error: "ID is required" });
     }
@@ -150,7 +335,7 @@ router.delete("/delete/:id", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
-    const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`
+    const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`;
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
     }
@@ -164,7 +349,7 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 router.put(
-  "/edit/:id",
+  "/:id",
   upload.fields([{ name: "logo" }, { name: "photo" }]),
   async (req, res) => {
     try {

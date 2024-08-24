@@ -2,8 +2,8 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger-output.json");
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3000;
@@ -31,18 +31,41 @@ mongoose
 // Importing routes
 const authRouter = require("./routes/authRoute");
 const shopRouter = require("./routes/shopRoute");
-const adminRouter = require("./routes/adminRoute");
+const userRouter = require("./routes/userRoute");
+const productRouter = require("./routes/productRoute");
 
 /********************
        Swagger
 *******************/
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Shop API',
+    version: '1.0.0',
+    description: 'API documentation for the Shop management system',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3000/api',
+      description: 'Development server',
+    },
+  ],
+};
+
+const options = {
+  swaggerDefinition,
+  apis: ['./routes/*.js'], // Route dosyalarınızın yerini belirtin
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Define routes
 app.use("/api/auth", authRouter);
-app.use("/api/shop", shopRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api/shops", shopRouter);
+app.use("/api/users", userRouter);
+app.use("/api/products", productRouter);
 
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling
