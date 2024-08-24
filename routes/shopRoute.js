@@ -188,7 +188,6 @@ router.get("/nearest", async (req, res) => {
     const longitude = parseFloat(req.query.longitude);
 
     console.log({latitude,longitude});
-    
 
     if (!longitude || !latitude) {
       return res
