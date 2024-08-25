@@ -23,6 +23,7 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "_" + file.originalname.toLowerCase());
   },
 });
+const PartnerShop = require("../schemas/PartnerShop");
 const upload = multer({ storage: storage });
 
 //NOTE: Endpoints For Shops
