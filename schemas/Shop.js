@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const PartnerShop = require("./PartnerShop");
 
 const shopSchema = new Schema({
   address: {
@@ -40,8 +41,6 @@ shopSchema.pre("save", async function (doc) {
     console.log("Hey");
     try {
       console.log("Creating PartnerShop for new Shop...");
-
-      const PartnerShop = mongoose.model("PartnerShop");
 
       const newPartnerShop = new PartnerShop({
         shop: doc._id,
