@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const shopSchema = new Schema({
-  address:{
-    type:String,
-    required:true,
-    unique: true
+  address: {
+    type: String,
+    required: true,
+    unique: true,
   },
   name: {
     type: String,
@@ -33,6 +33,24 @@ const shopSchema = new Schema({
     },
   },
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Reference to Product model
+});
+
+shopSchema.post("save", async function (doc) {
+  try {
+    const PartnerShop = mongoose.model("PartnerShop");
+
+    const newPartnerShop = new PartnerShop({
+      shop: doc._id,
+      orders: [], // Initialize empty orders array
+      totalRevenue: 0,
+      totalOrders: 0,
+    });
+
+    await newPartnerShop.save();
+    console.log("PartnerShop created for new Shop.");
+  } catch (error) {
+    console.error("Error creating PartnerShop:", error);
+  }
 });
 
 shopSchema.index({ location: "2dsphere" });

@@ -33,6 +33,7 @@ const authRouter = require("./routes/authRoute");
 const shopRouter = require("./routes/shopRoute");
 const userRouter = require("./routes/userRoute");
 const productRouter = require("./routes/productRoute");
+const orderRouter = require("./routes/orderRoute");
 
 /********************
        Swagger
@@ -66,6 +67,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/shops", shopRouter);
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
 
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling
