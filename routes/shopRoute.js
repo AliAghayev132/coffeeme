@@ -100,6 +100,7 @@ const upload = multer({ storage: storage });
  *   get:
  *     summary: Get a shop by ID
  *     description: Retrieves a shop and its products by shop ID.
+ *     tags: [Shops]
  *     parameters:
  *       - in: path
  *         name: id
