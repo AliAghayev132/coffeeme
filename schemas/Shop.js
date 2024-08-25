@@ -36,25 +36,24 @@ const shopSchema = new Schema({
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Reference to Product model
 });
 
-shopSchema.pre("save", async function (doc) {
+shopSchema.pre('save', async function (next) {
   if (this.isNew) {
-    console.log("Hey");
     try {
-      console.log("Creating PartnerShop for new Shop...");
-
+      const PartnerShop = mongoose.model('PartnerShop');
       const newPartnerShop = new PartnerShop({
-        shop: doc._id,
+        shop: this._id, // Ensure this._id is properly set
         orders: [], // Initialize empty orders array
         totalRevenue: 0,
         totalOrders: 0,
       });
 
       await newPartnerShop.save();
-      console.log("PartnerShop created for new Shop.");
+      console.log('PartnerShop created for new Shop.');
     } catch (error) {
-      console.error("Error creating PartnerShop:", error);
+      console.error('Error creating PartnerShop:', error);
     }
   }
+  next();
 });
 
 shopSchema.index({ location: "2dsphere" });
