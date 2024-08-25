@@ -36,7 +36,7 @@ const shopSchema = new Schema({
 });
 
 shopSchema.pre("save", async function (doc) {
-  if (doc.isNew) {
+  if (this.isNew) {
     console.log("Hey");
     try {
       console.log("Creating PartnerShop for new Shop...");
