@@ -4,6 +4,7 @@ const fs = require("fs");
 const multer = require("multer");
 const Shop = require("../schemas/Shop");
 const Product = require("../schemas/Product");
+const path = require("path");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
