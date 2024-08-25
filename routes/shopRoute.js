@@ -472,6 +472,8 @@ router.delete("/:id", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
+    
+    await PartnerShop.findOneAndDelete({ "shop._id": id });
     await Product.deleteMany({ _id: { $in: deletedShop.products } });
     const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`;
     if (fs.existsSync(shopDir)) {
