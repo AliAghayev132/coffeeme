@@ -37,8 +37,11 @@ const shopSchema = new Schema({
 
 console.log("Salam");
 shopSchema.post("save", async function (doc) {
+  console.log(doc.isNew);
   if (doc.isNew) {
     try {
+      console.log("Hey");
+      
       const PartnerShop = mongoose.model("PartnerShop");
 
       const newPartnerShop = new PartnerShop({
