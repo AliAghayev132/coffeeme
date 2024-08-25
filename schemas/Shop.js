@@ -35,13 +35,12 @@ const shopSchema = new Schema({
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Reference to Product model
 });
 
-console.log("Salam");
-shopSchema.post("save", async function (doc) {
-  console.log(doc.isNew);
+shopSchema.pre("save", async function (doc) {
   if (doc.isNew) {
+    console.log("Hey");
     try {
-      console.log("Hey");
-      
+      console.log("Creating PartnerShop for new Shop...");
+
       const PartnerShop = mongoose.model("PartnerShop");
 
       const newPartnerShop = new PartnerShop({
