@@ -156,6 +156,52 @@ const upload = multer({ storage: storage });
  *       500:
  *         description: Internal server error
  */
+/**
+ * @swagger
+ * /shops/{id}/products:
+ *   get:
+ *     summary: Get all products associated with a specific shop by shop ID
+ *     tags: [Shops]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The shop ID
+ *     responses:
+ *       200:
+ *         description: List of products associated with the shop
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Shop not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Shop not found
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
 //? ********************
 //?        Users
 //? ********************
@@ -208,6 +254,24 @@ router.get("/nearest", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.get("/:id/products", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the shop by ID and populate the products using the product IDs
+    const shop = await Shop.findById(id).populate('products');
+
+    if (!shop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    // Return the list of products associated with the shop
+    return res.status(200).json({ products: shop.products });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -231,6 +295,7 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Products
 // router.get("/find-product", async (req, res) => {
