@@ -25,7 +25,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-
 //NOTE: Endpoints For Shops
 
 /**
@@ -206,7 +205,6 @@ const upload = multer({ storage: storage });
 //?        Users
 //? ********************
 
-
 router.get("/nearest", async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
@@ -223,7 +221,7 @@ router.get("/nearest", async (req, res) => {
         $geoNear: {
           near: {
             type: "Point",
-            coordinates: [longitude,latitude],
+            coordinates: [longitude, latitude],
           },
           distanceField: "distance",
           maxDistance: 50000,
@@ -259,7 +257,7 @@ router.get("/:id/products", async (req, res) => {
     const { id } = req.params;
 
     // Find the shop by ID and populate the products using the product IDs
-    const shop = await Shop.findById(id).populate('products');
+    const shop = await Shop.findById(id).populate("products");
 
     if (!shop) {
       return res.status(404).json({ error: "Shop not found" });
@@ -272,19 +270,19 @@ router.get("/:id/products", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const shop = await Shop.findById(id).populate('products'); // Populate the products field
+    const shop = await Shop.findById(id).populate("products"); // Populate the products field
 
     if (!shop) {
-      return res.status(404).json({ error: 'Shop not found' });
+      return res.status(404).json({ error: "Shop not found" });
     }
 
-    return res.status(200).json({ message:"Successfully got shop",shop });
+    return res.status(200).json({ message: "Successfully got shop", shop });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 router.get("/", async (req, res) => {
@@ -295,7 +293,6 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Products
 // router.get("/find-product", async (req, res) => {
@@ -320,7 +317,6 @@ router.get("/", async (req, res) => {
 //! ********************
 //!        Admin
 //! ********************
-
 
 /**
  * @swagger
@@ -439,11 +435,9 @@ router.post(
       const { name, longitude, latitude, address } = req.body;
 
       if (!name || !longitude || !latitude || !address) {
-        return res
-          .status(400)
-          .json({
-            error: "Name, longitude, address and latitude are required",
-          });
+        return res.status(400).json({
+          error: "Name, longitude, address and latitude are required",
+        });
       }
 
       const newShop = new Shop({
@@ -478,6 +472,7 @@ router.delete("/:id", async (req, res) => {
     if (!deletedShop) {
       return res.status(404).json({ error: "Shop not found" });
     }
+    await Product.deleteMany({ _id: { $in: deletedShop.products } });
     const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`;
     if (fs.existsSync(shopDir)) {
       fs.rmSync(shopDir, { recursive: true, force: true });
