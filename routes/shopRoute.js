@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "_" + file.originalname.toLowerCase());
   },
 });
-const PartnerShop = require("../schemas/PartnerShop");
+const Partner = require("../schemas/Partner");
 const upload = multer({ storage: storage });
 
 //NOTE: Endpoints For Shops
@@ -456,7 +456,7 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Shop not found" });
     }
     
-    await PartnerShop.findOneAndDelete({ shop: id });
+    await Partner.findOneAndDelete({ shop: id });
     await Product.deleteMany({ _id: { $in: deletedShop.products } });
     const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`;
     if (fs.existsSync(shopDir)) {
