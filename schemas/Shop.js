@@ -44,7 +44,6 @@ const shopSchema = new Schema({
 shopSchema.pre('save', async function (next) {
   if (this.isNew) {
     try {
-      const PartnerShop = mongoose.model('PartnerShop');
       const newPartnerShop = new PartnerShop({
         shop: this._id, // Ensure this._id is properly set
         orders: [], // Initialize empty orders array

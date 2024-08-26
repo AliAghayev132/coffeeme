@@ -202,6 +202,7 @@ const upload = multer({ storage: storage });
  *                   type: string
  *                   example: Internal server error
  */
+
 //? ********************
 //?        Users
 //? ********************
@@ -295,25 +296,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Products
-// router.get("/find-product", async (req, res) => {
-//   try {
-//     const { name } = req.query;
-//     if (!name || name.length < 3) {
-//       return res.status(400).json({
-//         error: "Name must be provided and at least 3 characters long",
-//       });
-//     }
-//     const products = await Product.find({
-//       name: { $regex: name, $options: "i" },
-//     });
-//     return res.status(200).json({ data: products });
-//   } catch (error) {
-//     return res.status(500).json({
-//       error: "Internal server error",
-//     });
-//   }
-// });
 
 //! ********************
 //!        Admin

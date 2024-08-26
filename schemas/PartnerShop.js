@@ -1,7 +1,7 @@
 // partnerShop.js
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Shop = require("./Shop"); // Import the Shop model
+
 
 const PartnerShopSchema = new Schema({
   shop: {
@@ -10,6 +10,7 @@ const PartnerShopSchema = new Schema({
     required: true,
   },
   orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+  history: [],
   totalRevenue: {
     type: Number,
     default: 0,
