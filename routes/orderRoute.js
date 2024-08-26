@@ -5,6 +5,7 @@ const Order = require("../schemas/Order"); // Order model
 const Product = require("../schemas/Product"); // Product model
 const User = require("../schemas/User"); // User model
 const Partner = require("../schemas/Partner"); // Partner model
+const Shop = require("../schemas/Shop");
 const validateAccessToken = require("../middlewares/validateToken");
 
 router.post("/", validateAccessToken, async (req, res) => {
@@ -20,7 +21,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const shop = await Partner.findById(shopId);
+    const shop = await Shop.findById(shopId);
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
