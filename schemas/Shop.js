@@ -34,6 +34,11 @@ const shopSchema = new Schema({
     },
   },
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Reference to Product model
+  rating:{
+    type:Number,
+    required:false,
+    default:5,
+  }
 });
 
 shopSchema.pre('save', async function (next) {
