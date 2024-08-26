@@ -10,4 +10,13 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
+router.put("/:id", async (req, res) => {
+  try {
+    const partner = await Partner.findById({id})
+    return res.status(201).json({ message: "Successfull", partner });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 module.exports = router;

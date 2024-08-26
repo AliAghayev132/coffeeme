@@ -2,7 +2,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-
 const PartnerSchema = new Schema({
   shop: {
     type: Schema.Types.ObjectId,
@@ -10,26 +9,18 @@ const PartnerSchema = new Schema({
     required: true,
   },
   orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
-  history: [],
   totalRevenue: {
     type: Number,
     default: 0,
   },
-  totalOrders: {
-    type: Number,
-    default: 0,
-  },
-  createdDate: {
-    type: Date,
-    default: Date.now,
-  },
-  modifiedDate: {
-    type: Date,
-    default: Date.now,
-  },
-  owner: {
+  username: {
     type: String,
     required: false,
+  },
+  phone: {
+    type: String,
+    require: false,
+    unique: true,
   },
 });
 

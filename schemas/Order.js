@@ -38,6 +38,10 @@ const orderSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  finishedDate:{
+    type: Date,
+    default: null
+  },
   status: {
     type: String,
     enum: ["Pending", "Processing", "Completed", "Cancelled"],

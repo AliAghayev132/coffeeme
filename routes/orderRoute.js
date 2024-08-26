@@ -7,15 +7,12 @@ const User = require("../schemas/User"); // User model
 const Partner = require("../schemas/Partner"); // Partner model
 const validateAccessToken = require("../middlewares/validateToken");
 
-// Endpoint: Create a new order
 router.post("/", validateAccessToken, async (req, res) => {
   try {
-    const { items, shopId, message } = req.body; // shopId yerine shop gönder
+    const { orderedItems, shopId, message } = req.body;
 
-    // Token'dan user ID'sini almak
-    const userId = req.user.id; 
+    const userId = req.user._id;
 
-    // User ve Shop'ları bulmak
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -26,40 +23,52 @@ router.post("/", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
-    // Geçerli ürünleri kontrol et
-    const productIds = items.map(item => item.product);
+    const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
-    // Check if all items' products are valid and belong to the shop
-    const validItems = items.every(item => {
-      const product = products.find(p => p._id.toString() === item.product.toString());
+    const validItems = orderedItems.every((item) => {
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
       return product && product.shop.id.toString() === shopId.toString();
     });
 
     if (!validItems) {
-      return res.status(400).json({ message: "One or more items are invalid or not in the specified shop" });
+      return res
+        .status(400)
+        .json({
+          message: "One or more items are invalid or not in the specified shop",
+        });
     }
 
-    // Calculate total price and discounted price
-    const totalPrice = items.reduce((sum, item) => {
-      const product = products.find(p => p._id.toString() === item.product.toString());
-      return sum + (item.quantity * (product.price || 0));
+    const totalPrice = orderedItems.reduce((sum, item) => {
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
+      return sum + item.productCount * (product.price || 0);
     }, 0);
 
-    const totalDiscountedPrice = items.reduce((sum, item) => {
-      const product = products.find(p => p._id.toString() === item.product.toString());
-      return sum + (item.quantity * (product.discountedPrice || 0));
+    const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
+      return sum + item.productCount * (product.discountedPrice || 0);
     }, 0);
 
-    // Create a new order
     const newOrder = new Order({
       user: userId,
-      items: items.map(item => ({
-        product: item.product,
-        quantity: item.quantity,
-        price: products.find(p => p._id.toString() === item.product.toString()).price,
-        discount: products.find(p => p._id.toString() === item.product.toString()).discount,
-        discountedPrice: products.find(p => p._id.toString() === item.product.toString()).discountedPrice,
+      items: orderedItems.map((item) => ({
+        product: item.productId,
+        quantity: item.productCount,
+        price: products.find(
+          (p) => p._id.toString() === item.productId.toString()
+        ).price,
+        discount: products.find(
+          (p) => p._id.toString() === item.productId.toString()
+        ).discount,
+        discountedPrice: products.find(
+          (p) => p._id.toString() === item.productId.toString()
+        ).discountedPrice,
       })),
       shop: shopId,
       totalPrice,
@@ -67,12 +76,11 @@ router.post("/", validateAccessToken, async (req, res) => {
       message,
     });
 
-    // Save the order
+    // Save the order and update the user's order list
     const savedOrder = await newOrder.save();
-
-    // Update user with the new order
     await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
 
+    // Return the saved order
     res.status(201).json(savedOrder);
   } catch (error) {
     console.error(error);
