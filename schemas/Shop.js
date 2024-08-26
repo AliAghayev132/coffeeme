@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const PartnerShop = require("./PartnerShop");
+const PartnerShop = require("./Partner");
 
 const shopSchema = new Schema({
   address: {

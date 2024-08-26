@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 
-const PartnerShopSchema = new Schema({
+const PartnerSchema = new Schema({
   shop: {
     type: Schema.Types.ObjectId,
     ref: "Shop",
@@ -33,5 +33,5 @@ const PartnerShopSchema = new Schema({
   },
 });
 
-const PartnerShop = mongoose.model("PartnerShop", PartnerShopSchema);
-module.exports = PartnerShop;
+const Partner = mongoose.model("Partner", PartnerSchema);
+module.exports = Partner;
