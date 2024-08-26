@@ -9,6 +9,8 @@ const validateAccessToken = require("../middlewares/validateToken");
 
 router.post("/", validateAccessToken, async (req, res) => {
   try {
+    console.log(req.body);
+    
     const { orderedItems, shopId, message } = req.body;
 
     const userId = req.user._id;
