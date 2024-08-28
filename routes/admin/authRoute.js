@@ -48,7 +48,23 @@ router.post("/refresh-token", async (req, res) => {
   try {
     const { token } = req.body;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
-    const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
+    } catch (error) {
+      // Token geçersiz veya süresi dolmuşsa
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Unauthorized: Token expired" });
+      } else if (error.name === "JsonWebTokenError") {
+        return res.status(401).json({ error: "Unauthorized: Invalid token" });
+      } else {
+        return res
+          .status(401)
+          .json({ error: "Unauthorized: Token verification failed" });
+      }
+    }
+
     const { email, _id } = decoded;
 
     const newToken = jwt.sign({ email, _id }, process.env.ACCESS_SECRET_KEY, {
