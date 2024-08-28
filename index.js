@@ -2,8 +2,8 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3000;
@@ -29,50 +29,52 @@ mongoose
   });
 
 // Importing routes
-const authRouter = require("./routes/authRoute");
-const shopRouter = require("./routes/shopRoute");
-const userRouter = require("./routes/userRoute");
-const productRouter = require("./routes/productRoute");
-const orderRouter = require("./routes/orderRoute");
+// const authRouter = require("./routes/authRoute");
+// const shopRouter = require("./routes/shopRoute");
+// const userRouter = require("./routes/userRoute");
+// const productRouter = require("./routes/productRoute");
+// const orderRouter = require("./routes/orderRoute");
+
 const partnerRouter = require("./routes/partnerRoute");
+const adminRouter = require("./routes/adminRoute");
+
+// Define routes
+// app.use("/api/auth", authRouter);
+// app.use("/api/shops", shopRouter);
+// app.use("/api/users", userRouter);
+// app.use("/api/products", productRouter);
+// app.use("/api/orders", orderRouter);
+
+app.use("/api/admin", adminRouter);
+app.use("/api/partners", partnerRouter);
+
+app.use("/public", express.static("public"));
+// Starting the server with improved error handling
 
 /********************
        Swagger
 *******************/
 
 const swaggerDefinition = {
-  openapi: '3.0.0',
+  openapi: "3.0.0",
   info: {
-    title: 'Shop API',
-    version: '1.0.0',
-    description: 'API documentation for the Shop management system',
+    title: "Shop API",
+    version: "1.0.0",
+    description: "API documentation for the Shop management system",
   },
   servers: [
     {
-      url: 'https://coffeeme.app/api',
-      description: 'Development server',
+      url: "https://coffeeme.app/api",
+      description: "Development server",
     },
   ],
 };
-
 const options = {
   swaggerDefinition,
-  apis: ['./routes/*.js'], // Route dosyalarınızın yerini belirtin
+  apis: ["./routes/*.js"], // Route dosyalarınızın yerini belirtin
 };
-
 const swaggerSpec = swaggerJsdoc(options);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Define routes
-app.use("/api/auth", authRouter);
-app.use("/api/shops", shopRouter);
-app.use("/api/users", userRouter);
-app.use("/api/products", productRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/partners", partnerRouter);
-
-app.use("/public", express.static("public"));
-// Starting the server with improved error handling
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.listen(PORT, (err) => {
   if (err) {
     console.error("Failed to start the server", err);

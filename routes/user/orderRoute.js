@@ -4,14 +4,30 @@ const mongoose = require("mongoose");
 const Order = require("../schemas/Order"); // Order model
 const Product = require("../schemas/Product"); // Product model
 const User = require("../schemas/User"); // User model
-const Partner = require("../schemas/Partner"); // Partner model
+const PartnerShop = require("../schemas/PartnerShop"); // PartnerShop model
 const Shop = require("../schemas/Shop");
 const validateAccessToken = require("../middlewares/validateToken");
 
+//? ********************
+//?        User
+//? ********************
+
+router.get("/", validateAccessToken, async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const user = User.findById(_id).populate("Order");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const orders = user.orders;
+    return res.status(200).json({ orders });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server errro" });
+  }
+});
 router.post("/", validateAccessToken, async (req, res) => {
   try {
-    console.log(req.body);
-    
     const { orderedItems, shopId, message } = req.body;
 
     const userId = req.user._id;
@@ -19,6 +35,10 @@ router.post("/", validateAccessToken, async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.orders.length >= 3) {
+      return res.status(400).json({ message: "Your have reached order limit" });
     }
 
     const shop = await Shop.findById(shopId);
@@ -37,11 +57,9 @@ router.post("/", validateAccessToken, async (req, res) => {
     });
 
     if (!validItems) {
-      return res
-        .status(400)
-        .json({
-          message: "One or more items are invalid or not in the specified shop",
-        });
+      return res.status(400).json({
+        message: "One or more items are invalid or not in the specified shop",
+      });
     }
 
     const totalPrice = orderedItems.reduce((sum, item) => {
@@ -84,10 +102,10 @@ router.post("/", validateAccessToken, async (req, res) => {
     await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
 
     // Return the saved order
-    res.status(201).json(savedOrder);
+    return res.status(201).json(savedOrder);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating order", error });
+    return res.status(500).json({ message: "Error creating order", error });
   }
 });
 
