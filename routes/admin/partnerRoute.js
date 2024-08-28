@@ -5,7 +5,7 @@ const validateAccessToken = require("../../middlewares/validateToken");
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
-    const partners = Partner.find({}).lean();
+    const partners = await Partner.find({}).lean();
     return res.status(200).json({ success: true, partners });
   } catch (error) {
     console.error(error);
