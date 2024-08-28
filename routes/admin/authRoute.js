@@ -44,5 +44,22 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+router.post("/refresh-token", async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
+    const { email, _id } = decoded;
+
+    const newToken = jwt.sign({ email, _id }, process.env.ACCESS_SECRET_KEY, {
+      expiresIn: "10m",
+    });
+
+    return res.status(200).json({ accessToken: newToken });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
