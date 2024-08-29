@@ -12,7 +12,7 @@ const {
   validateEmail,
   validateAzerbaijanPhoneNumber,
   validatePassword,
-} = require("../utils/validation");
+} = require("../../utils/validation");
 
 
 const storage = (folderName) =>
