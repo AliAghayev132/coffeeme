@@ -17,7 +17,6 @@ router.post("/login", async (req, res) => {
 
     const accessToken = jwt.sign(
       {
-        email,
         _id: partner._id,
       },
       process.env.ACCESS_SECRET_KEY,
@@ -28,7 +27,6 @@ router.post("/login", async (req, res) => {
 
     const refreshToken = jwt.sign(
       {
-        email,
         _id: partner._id,
       },
       process.env.REFRESH_SECRET_KEY,
