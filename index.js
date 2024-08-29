@@ -34,10 +34,6 @@ mongoose
 // const userRouter = require("./routes/userRoute");
 // const productRouter = require("./routes/productRoute");
 // const orderRouter = require("./routes/orderRoute");
-
-const partnerRouter = require("./routes/partnerRoute");
-const adminRouter = require("./routes/adminRoute");
-
 // Define routes
 // app.use("/api/auth", authRouter);
 // app.use("/api/shops", shopRouter);
@@ -45,8 +41,15 @@ const adminRouter = require("./routes/adminRoute");
 // app.use("/api/products", productRouter);
 // app.use("/api/orders", orderRouter);
 
+const partnerRouter = require("./routes/partnerRoute");
+const adminRouter = require("./routes/adminRoute");
+const userRouter = require("./routes/userRoute");
+
+
 app.use("/api/admin", adminRouter);
+app.use("/api/users", userRouter);
 app.use("/api/partners", partnerRouter);
+
 
 app.use("/public", express.static("public"));
 // Starting the server with improved error handling

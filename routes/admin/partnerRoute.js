@@ -25,7 +25,6 @@ router.get("/next", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 // Verilmiş idili edit edit
 router.put("/:id", validateAccessToken, async (req, res) => {
   try {
@@ -40,7 +39,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     partner.username = username;
-    partner.password = hashedPassword
+    partner.password = hashedPassword;
 
     await partner.save();
     return res

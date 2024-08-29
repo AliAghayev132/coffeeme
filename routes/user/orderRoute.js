@@ -1,16 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
 const Order = require("../schemas/Order"); // Order model
 const Product = require("../schemas/Product"); // Product model
 const User = require("../schemas/User"); // User model
-const PartnerShop = require("../schemas/PartnerShop"); // PartnerShop model
 const Shop = require("../schemas/Shop");
 const validateAccessToken = require("../middlewares/validateToken");
-
-//? ********************
-//?        User
-//? ********************
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {

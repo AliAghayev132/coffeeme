@@ -1,5 +1,5 @@
-const User = require("../schemas/User");
-const Otp = require("../schemas/Otp");
+const User = require("../../schemas/User");
+const Otp = require("../../schemas/Otp");
 const bcrypt = require("bcrypt");
 const express = require("express");
 const router = express.Router();
