@@ -1,6 +1,7 @@
 const express = require("express");
 const Partner = require("../../schemas/Partner");
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
 router.post("/login", async (req, res) => {
   try {
