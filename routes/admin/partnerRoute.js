@@ -2,6 +2,7 @@ const express = require("express");
 const Partner = require("../../schemas/Partner");
 const router = express.Router();
 const validateAccessToken = require("../../middlewares/validateToken");
+const bcrypt = require("bcrypt");
 
 // Bütün partnyorları qaytarır
 router.get("/", validateAccessToken, async (req, res) => {
@@ -37,8 +38,9 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         .json({ success: false, message: "Partner not found" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     partner.username = username;
-    partner.password = password;
+    partner.password = hashedPassword
 
     await partner.save();
     return res
