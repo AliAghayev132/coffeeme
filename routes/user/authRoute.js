@@ -12,8 +12,8 @@ const {
   validatePassword,
 } = require("../utils/validation");
 
-const otpGenerator = require("../utils/otpGenerator");
-const validateAccessToken = require("../middlewares/validateToken");
+const otpGenerator = require("../..utils/otpGenerator");
+const validateAccessToken = require("../../middlewares/validateToken");
 const storage = (folderName) =>
   multer.diskStorage({
     destination: function (req, file, cb) {
