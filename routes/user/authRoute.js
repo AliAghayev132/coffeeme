@@ -6,14 +6,15 @@ const router = express.Router();
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const otpGenerator = require("../../utils/otpGenerator");
+const validateAccessToken = require("../../middlewares/validateToken");
 const {
   validateEmail,
   validateAzerbaijanPhoneNumber,
   validatePassword,
 } = require("../utils/validation");
 
-const otpGenerator = require("../..utils/otpGenerator");
-const validateAccessToken = require("../../middlewares/validateToken");
+
 const storage = (folderName) =>
   multer.diskStorage({
     destination: function (req, file, cb) {
