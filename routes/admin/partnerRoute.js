@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 // Bütün partnyorları qaytarır
 router.get("/", validateAccessToken, async (req, res) => {
   try {
-    const partners = await Partner.find({}).lean();
+    const partners = await Partner.find({}).select('-password').lean();
     return res.status(200).json({ success: true, partners });
   } catch (error) {
     console.error(error);
@@ -40,12 +40,12 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     partner.username = username;
     partner.password = hashedPassword;
-
     await partner.save();
     return res
       .status(200)
       .json({ success: true, message: "Partner edited successfully" });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
