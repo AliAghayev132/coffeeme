@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 
 router.post("/login", async (req, res) => {
   try {
-    console.log(req.body);
     const { username, password } = req.body;
     const partner = await Partner.findOne({ username });
     if (!partner) return res.status(404).json({ message: "Partner not found" });

@@ -30,6 +30,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { username, password } = req.body;
+    console.log(req.body);
     console.log(id,username,password);
     const partner = await Partner.findById(id);
     if (!partner) {
