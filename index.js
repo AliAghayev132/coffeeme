@@ -16,7 +16,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 const mongoose = require("mongoose");
 
 // MongoDB connection with error handling
