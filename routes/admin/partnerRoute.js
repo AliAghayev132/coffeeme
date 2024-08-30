@@ -30,9 +30,14 @@ router.put("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { username, password } = req.body;
-    console.log(req.body);
-    console.log(id,username,password);
     const partner = await Partner.findById(id);
+
+    if(!username || !password){
+      return res
+      .status(400)
+      .json({ success: false, message: "All Fields areq required" });
+    }
+    
     if (!partner) {
       return res
         .status(404)
