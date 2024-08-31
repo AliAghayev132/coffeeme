@@ -35,7 +35,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     if(!username || !password){
       return res
       .status(400)
-      .json({ success: false, message: "All Fields areq required" });
+      .json({ success: false, message: "All Fields are required" });
     }
     
     if (!partner) {

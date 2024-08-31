@@ -28,19 +28,6 @@ mongoose
     process.exit(1); // Exit the process with a failure code
   });
 
-// Importing routes
-// const authRouter = require("./routes/authRoute");
-// const shopRouter = require("./routes/shopRoute");
-// const userRouter = require("./routes/userRoute");
-// const productRouter = require("./routes/productRoute");
-// const orderRouter = require("./routes/orderRoute");
-// Define routes
-// app.use("/api/auth", authRouter);
-// app.use("/api/shops", shopRouter);
-// app.use("/api/users", userRouter);
-// app.use("/api/products", productRouter);
-// app.use("/api/orders", orderRouter);
-
 const partnerRouter = require("./routes/partnerRoute");
 const adminRouter = require("./routes/adminRoute");
 const userRouter = require("./routes/userRoute");

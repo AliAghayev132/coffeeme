@@ -287,7 +287,7 @@ router.get("/:id", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/", async (req, res) => {
+router.get("/",validateAccessToken, async (req, res) => {
   try {
     const shops = await Shop.find();
     return res.status(201).json({ success: true, shops });
