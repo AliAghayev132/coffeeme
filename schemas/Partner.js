@@ -5,12 +5,12 @@ const Schema = mongoose.Schema;
 const PartnerSchema = new Schema({
   username: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
   },
   password: {
     type: String,
-    required: true,
+    required: false,
   },
   shop: {
     type: Schema.Types.ObjectId,
