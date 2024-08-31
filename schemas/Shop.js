@@ -34,14 +34,14 @@ const shopSchema = new Schema({
     },
   },
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Reference to Product model
-  rating:{
-    type:Number,
-    required:false,
-    default:5,
-  }
+  rating: {
+    type: Number,
+    required: false,
+    default: 5,
+  },
 });
 
-shopSchema.pre('save', async function (next) {
+shopSchema.pre("save", async function (next) {
   if (this.isNew) {
     try {
       const newPartnerShop = new PartnerShop({
@@ -52,9 +52,10 @@ shopSchema.pre('save', async function (next) {
       });
 
       await newPartnerShop.save();
-      console.log('PartnerShop created for new Shop.');
+      console.log("PartnerShop created for new Shop.");
     } catch (error) {
-      console.error('Error creating PartnerShop:', error);
+      console.error("Error creating PartnerShop:", error);
+      return next(error);
     }
   }
   next();
