@@ -24,7 +24,8 @@ const PartnerSchema = new Schema({
   },
   phone: {
     type: String,
-    require: false,
+    required: false,
+    unique:false,
   },
 });
 
