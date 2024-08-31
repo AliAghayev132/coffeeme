@@ -176,5 +176,22 @@ router.get("/", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.get("/:id/products", validateAccessToken, async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    // Find the shop by ID and populate the products using the product IDs
+    const shop = await Shop.findById(id).populate("products");
+
+    if (!shop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    // Return the list of products associated with the shop
+    return res.status(200).json({ products: shop.products });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 module.exports = router;
