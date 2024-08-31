@@ -6,7 +6,7 @@ const PartnerSchema = new Schema({
   username: {
     type: String,
     required: false,
-    unique: true,
+    unique: false,
   },
   password: {
     type: String,
@@ -25,7 +25,7 @@ const PartnerSchema = new Schema({
   phone: {
     type: String,
     required: false,
-    unique: true,
+    unique: false,
   },
 });
 
