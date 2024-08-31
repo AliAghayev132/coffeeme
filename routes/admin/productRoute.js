@@ -38,7 +38,6 @@ router.post(
       }
 
       const shop = await Shop.findById(id);
-      console.log({ shop, id });
 
       if (!shop) {
         return res.status(404).json({ error: "Shop not found" });

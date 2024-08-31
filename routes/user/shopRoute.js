@@ -207,7 +207,7 @@ const upload = multer({ storage: storage });
 //?        Users
 //? ********************
 
-router.get("/nearest", async (req, res) => {
+router.get("/nearest", validateAccessToken, async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
     const longitude = parseFloat(req.query.longitude);
@@ -254,7 +254,7 @@ router.get("/nearest", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/:id/products", async (req, res) => {
+router.get("/:id/products", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -272,7 +272,7 @@ router.get("/:id/products", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/:id", async (req, res) => {
+router.get("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
     const shop = await Shop.findById(id).populate("products"); // Populate the products field
@@ -287,7 +287,7 @@ router.get("/:id", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-router.get("/",validateAccessToken, async (req, res) => {
+router.get("/", validateAccessToken, async (req, res) => {
   try {
     const shops = await Shop.find();
     return res.status(201).json({ success: true, shops });
@@ -295,261 +295,5 @@ router.get("/",validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-//! ********************
-//!        Admin
-//! ********************
-
-/**
- * @swagger
- * tags:
- *   name: Shops
- *   description: Shop management API
- */
-/**
- * @swagger
- * /shops:
- *   post:
- *     summary: Create a new shop
- *     tags: [Shops]
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               longitude:
- *                 type: string
- *               latitude:
- *                 type: string
- *               address:
- *                 type: string
- *               logo:
- *                 type: string
- *                 format: binary
- *               photo:
- *                 type: string
- *                 format: binary
- *     responses:
- *       201:
- *         description: Shop added successfully
- *       400:
- *         description: Bad request
- *       500:
- *         description: Internal server error
- */
-/**
- * @swagger
- * /shops/{id}:
- *   delete:
- *     summary: Delete a shop
- *     tags: [Shops]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The shop id
- *     responses:
- *       200:
- *         description: Shop deleted successfully
- *       400:
- *         description: ID is required
- *       404:
- *         description: Shop not found
- *       500:
- *         description: Internal server error
- */
-/**
- * @swagger
- * /shops/{id}:
- *   put:
- *     summary: Update a shop
- *     tags: [Shops]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The shop id
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               longitude:
- *                 type: string
- *               latitude:
- *                 type: string
- *               address:
- *                 type: string
- *               logo:
- *                 type: string
- *                 format: binary
- *               photo:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Shop updated successfully
- *       400:
- *         description: Bad request
- *       404:
- *         description: Shop not found
- *       500:
- *         description: Internal server error
- */
-
-router.post(
-  "/",
-  upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
-  async (req, res) => {
-    try {
-      const { name, longitude, latitude, address } = req.body;
-
-      if (!name || !longitude || !latitude || !address) {
-        return res.status(400).json({
-          error: "Name, longitude, address and latitude are required",
-        });
-      }
-
-      const newShop = new Shop({
-        address,
-        name,
-        location: {
-          type: "Point",
-          coordinates: [parseFloat(longitude), parseFloat(latitude)],
-        },
-        logo: req.files.logo ? req.files.logo[0].filename : "",
-        photo: req.files.photo ? req.files.photo[0].filename : "",
-      });
-
-      await newShop.save();
-
-      return res
-        .status(201)
-        .json({ data: newShop, message: "Shop added successfully" });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  }
-);
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ error: "ID is required" });
-    }
-    const deletedShop = await Shop.findByIdAndDelete(id);
-    if (!deletedShop) {
-      return res.status(404).json({ error: "Shop not found" });
-    }
-    
-    await Partner.findOneAndDelete({ shop: id });
-    await Product.deleteMany({ _id: { $in: deletedShop.products } });
-    const shopDir = `public/uploads/shops/${deletedShop.name}-${deletedShop.address}`;
-    if (fs.existsSync(shopDir)) {
-      fs.rmSync(shopDir, { recursive: true, force: true });
-    }
-    return res.status(200).json({
-      data: deletedShop,
-      message: "Shop and associated files deleted successfully",
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-router.put(
-  "/:id",
-  upload.fields([{ name: "logo" }, { name: "photo" }]),
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, longitude, latitude, address } = req.body;
-
-      const shop = await Shop.findById(id);
-      if (!shop) {
-        return res.status(404).json({ error: "Shop not found" });
-      }
-
-      const oldDir = `public/uploads/shops/${shop.name}-${shop.address}`;
-
-      if (name) shop.name = name;
-      if (longitude && latitude) {
-        shop.location = {
-          type: "Point",
-          coordinates: [parseFloat(longitude), parseFloat(latitude)],
-        };
-      }
-      if (address) shop.address = address;
-
-      const newDir = `public/uploads/shops/${shop.name}-${shop.address}`;
-
-      if (oldDir !== newDir) {
-        if (fs.existsSync(oldDir)) {
-          if (!fs.existsSync(newDir)) {
-            fs.mkdirSync(newDir, { recursive: true });
-          }
-
-          const files = fs.readdirSync(oldDir);
-          files.forEach((file) => {
-            fs.renameSync(path.join(oldDir, file), path.join(newDir, file));
-          });
-
-          fs.rmdirSync(oldDir);
-        }
-      }
-
-      if (req.files["logo"]) {
-        const logoFile = req.files["logo"][0];
-
-        if (shop.logo) {
-          const oldLogoPath = path.join(newDir, shop.logo);
-          if (fs.existsSync(oldLogoPath)) {
-            fs.unlinkSync(oldLogoPath);
-          }
-        }
-
-        shop.logo = logoFile.filename;
-        fs.renameSync(logoFile.path, path.join(newDir, logoFile.filename));
-      }
-
-      if (req.files["photo"]) {
-        const photoFile = req.files["photo"][0];
-
-        if (shop.photo) {
-          const oldPhotoPath = path.join(newDir, shop.photo);
-          if (fs.existsSync(oldPhotoPath)) {
-            fs.unlinkSync(oldPhotoPath);
-          }
-        }
-
-        shop.photo = photoFile.filename;
-        fs.renameSync(photoFile.path, path.join(newDir, photoFile.filename));
-      }
-
-      await shop.save();
-
-      return res
-        .status(200)
-        .json({ data: shop, message: "Shop updated successfully" });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  }
-);
 
 module.exports = router;

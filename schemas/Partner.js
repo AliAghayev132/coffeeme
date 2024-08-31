@@ -22,7 +22,7 @@ const PartnerSchema = new Schema({
     type: Number,
     default: 0,
   },
-  phone: {
+   phone: {
     type: String,
     required: false,
     unique: false,
