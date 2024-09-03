@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const productSchema = new Schema({
-  name: {
+const sizeSchema = new Schema({
+  size: {
     type: String,
     required: true,
   },
@@ -12,16 +12,29 @@ const productSchema = new Schema({
   },
   discount: {
     type: Number,
-    required: false,
+    required: true,
   },
   discountedPrice: {
     type: Number,
-    required: false,
+    required: true,
   },
+});
+
+const productSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  sizes: [sizeSchema],
   category: {
     type: String,
     required: true,
-    enum: ["cookie", "drink"],
+    enum: ["dessert", "drink", "other"],
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ["none", "takeaway", "cup", "all"],
   },
   shop: {
     id: {
@@ -62,15 +75,18 @@ const productSchema = new Schema({
 });
 
 productSchema.pre("save", function (next) {
-  if (this.isModified("price") || this.isModified("discount")) {
-    if (this.discount && this.discount > 0) {
-      this.discountedPrice = this.price - (this.price * this.discount) / 100;
-      console.log(this.discountedPrice, this.discount, this.price);
-    } else {
-      this.discountedPrice = this.price;
+  this.sizes.forEach((size) => {
+    if (size.isModified("price") || size.isModified("discount")) {
+      if (size.discount && size.discount > 0) {
+        size.discountedPrice = size.price - (size.price * size.discount) / 100;
+      } else {
+        size.discountedPrice = size.price;
+      }
     }
-  }
+  });
+
   next();
 });
+
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

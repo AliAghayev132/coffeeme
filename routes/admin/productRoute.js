@@ -29,11 +29,10 @@ router.post(
   upload.single("photo"),
   async (req, res) => {
     try {
-      const { id } = req.params; // shopId
-      const { name, price, discount, category, description, discountType } =
-        req.body;
-
-      if (!name || !price || !category || !description || !discountType) {
+      const { id } = req.params;
+      const { name, sizes, category, description, discountType,type } = req.body;
+      
+      if (!name || !sizes || !category || !description || !discountType || !type) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
@@ -43,10 +42,17 @@ router.post(
         return res.status(404).json({ error: "Shop not found" });
       }
 
+      let parsedSizes;
+      if (typeof sizes === "string") {
+        parsedSizes = JSON.parse(sizes);
+      } else {
+        parsedSizes = sizes;
+      } 
+      
       const newProduct = new Product({
+        type,
         name,
-        price,
-        discount,
+        sizes:parsedSizes,
         category,
         description,
         discountType,
@@ -59,8 +65,9 @@ router.post(
       });
 
       await newProduct.save();
-      shop.products.push(newProduct);
+      shop.products.push(newProduct._id);
       await shop.save();
+
       return res
         .status(201)
         .json({ message: "Product created successfully", data: newProduct });
@@ -70,6 +77,7 @@ router.post(
     }
   }
 );
+
 router.delete("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -99,6 +107,7 @@ router.delete("/:id", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 router.put(
   "/:id",
   validateAccessToken,
@@ -106,27 +115,35 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, price, discount, category, description, discountType } =
-        req.body;
+      const { name, sizes, category, description, discountType } = req.body;
+
+      if (!name || !sizes || !category || !description || !discountType) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
 
       const product = await Product.findById(id);
-
-      product.name = name;
-      product.price = price;
-      product.discount = discount;
-      product.category = category;
-      product.description = description;
-      product.discountType = discountType;
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
 
-      const shopId = product.shop.id;
-      const dir = `public/uploads/products/${shopId}`;
+      let parsedSizes;
+      if (typeof sizes === "string") {
+        parsedSizes = JSON.parse(sizes);
+      } else {
+        parsedSizes = sizes;
+      }
+
+      product.name = name;
+      product.sizes = parsedSizes;
+      product.category = category;
+      product.description = description;
+      product.discountType = discountType;
 
       if (req.file) {
         const photoFile = req.file;
+        const shopId = product.shop.id;
+        const dir = `public/uploads/products/${shopId}`;
 
         if (product.photo) {
           const oldPhotoPath = path.join(dir, product.photo);
@@ -151,6 +168,7 @@ router.put(
     }
   }
 );
+
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const products = await Product.find({});
