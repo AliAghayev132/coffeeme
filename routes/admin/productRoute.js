@@ -109,11 +109,18 @@ router.put(
       const { name, price, discount, category, description, discountType } =
         req.body;
 
-      const product = await Product.findByIdAndUpdate(
+      const product = await Product.findById(
         id,
-        { name, price, discount, category, description, discountType },
-        { new: true }
+
       );
+
+      product.name = name;
+product.price = price;
+product.discount = discount;
+product.category = category;
+product.description = description;
+product.discountType = discountType;
+
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
