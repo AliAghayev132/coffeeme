@@ -26,7 +26,7 @@ const credentials = {
 const server = https.createServer(credentials, app);
 
 // Initialize WebSocket Server on the same HTTPS server
-const wss = new WebSocket.Server({ server, path: "/wss" });
+const wss = new WebSocket.Server({ server, path: "/ws" });
 
 // Middleware
 app.use(
