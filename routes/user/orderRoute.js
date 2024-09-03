@@ -47,13 +47,16 @@ router.post("/", validateAccessToken, async (req, res) => {
     const productIds = orderedItems.map(item => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
+    
     const validItems = orderedItems.every(item => {
       const product = products.find(p => p._id.toString() === item.productId.toString());
       if (!product || product.shop.id.toString() !== shopId.toString()) {
         return false;
       }
 
-      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      
+
+      const selectedSize = product.sizes.find(size => size.size === item.productSize);
       return selectedSize !== undefined;
     });
 
