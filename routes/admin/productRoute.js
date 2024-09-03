@@ -42,16 +42,11 @@ router.post(
       if (!shop) {
         return res.status(404).json({ error: "Shop not found" });
       }
-
-      const discountedPrice = discount
-        ? price - (price * discount) / 100
-        : price;
-
+      
       const newProduct = new Product({
         name,
         price,
         discount,
-        discountedPrice,
         category,
         description,
         discountType,

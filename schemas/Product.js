@@ -61,5 +61,15 @@ const productSchema = new Schema({
   },
 });
 
+productSchema.pre("save", function (next) {
+  if (this.isModified("price") || this.isModified("discount")) {
+    if (this.discount && this.discount > 0) {
+      this.discountedPrice = this.price - (this.price * this.discount) / 100;
+    } else {
+      this.discountedPrice = this.price;
+    }
+  }
+  next();
+});
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;
