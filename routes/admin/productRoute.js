@@ -42,7 +42,7 @@ router.post(
       if (!shop) {
         return res.status(404).json({ error: "Shop not found" });
       }
-      
+
       const newProduct = new Product({
         name,
         price,
@@ -109,18 +109,14 @@ router.put(
       const { name, price, discount, category, description, discountType } =
         req.body;
 
-      const product = await Product.findById(
-        id,
-
-      );
+      const product = await Product.findById(id);
 
       product.name = name;
-product.price = price;
-product.discount = discount;
-product.category = category;
-product.description = description;
-product.discountType = discountType;
-
+      product.price = price;
+      product.discount = discount;
+      product.category = category;
+      product.description = description;
+      product.discountType = discountType;
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
@@ -166,6 +162,5 @@ router.get("/", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 module.exports = router;

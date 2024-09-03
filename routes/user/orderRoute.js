@@ -4,6 +4,7 @@ const Order = require("../../schemas/Order"); // Order model
 const Product = require("../../schemas/Product"); // Product model
 const User = require("../../schemas/User"); // User model
 const Shop = require("../../schemas/Shop");
+const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
 
 router.get("/", validateAccessToken, async (req, res) => {
@@ -94,7 +95,12 @@ router.post("/", validateAccessToken, async (req, res) => {
     // Save the order and update the user's order list
     const savedOrder = await newOrder.save();
     await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
-
+    await Partner.findByIdAndUpdateI(
+      { shop: shopId },
+      {
+        $push: { orders: savedOrder._id },
+      }
+    );
     // Return the saved order
     return res.status(201).json(savedOrder);
   } catch (error) {
