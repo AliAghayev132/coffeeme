@@ -69,16 +69,14 @@ const productSchema = new Schema({
     required: true,
   },
 });
-
-productSchema.pre("save", function (next) {
-  this.sizes.forEach((size) => {
-    if (size.isModified("price") || size.isModified("discount")) {
-      if (size.discount && size.discount > 0) {
-        size.discountedPrice = size.price - (size.price * size.discount) / 100;
-      } else {
-        size.discountedPrice = size.price;
-      }
+productSchema.pre('save', function (next) {
+  this.sizes = this.sizes.map(size => {
+    if (size.discount && size.discount > 0) {
+      size.discountedPrice = size.price - (size.price * size.discount) / 100;
+    } else {
+      size.discountedPrice = size.price;
     }
+    return size;
   });
 
   next();

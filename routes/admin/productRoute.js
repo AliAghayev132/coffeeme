@@ -85,35 +85,7 @@ router.post(
     }
   }
 );
-router.delete("/:id", validateAccessToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findByIdAndDelete(id);
-    if (!product) {
-      return res.status(400).json({ error: "Product not found" });
-    }
-    const shop = await Shop.findById(product.shop.id);
-    if (!shop) {
-      return res
-        .status(400)
-        .json({ error: "Shop not found, but product deleted from db" });
-    }
-    shop.products = shop.products.filter((p) => !p.equals(product.id));
 
-    const productDir = `public/uploads/products/${shop.id}`;
-    if (fs.existsSync(productDir)) {
-      fs.rmSync(productDir, { recursive: true, force: true });
-    }
-
-    await shop.save();
-    return res
-      .status(201)
-      .json({ message: "Product deleted successfully", data: product });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
 router.put(
   "/:id",
   validateAccessToken,
@@ -174,6 +146,36 @@ router.put(
     }
   }
 );
+router.delete("/:id", validateAccessToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(400).json({ error: "Product not found" });
+    }
+    const shop = await Shop.findById(product.shop.id);
+    if (!shop) {
+      return res
+        .status(400)
+        .json({ error: "Shop not found, but product deleted from db" });
+    }
+    shop.products = shop.products.filter((p) => !p.equals(product.id));
+
+    const productDir = `public/uploads/products/${shop.id}`;
+    if (fs.existsSync(productDir)) {
+      fs.rmSync(productDir, { recursive: true, force: true });
+    }
+
+    await shop.save();
+    return res
+      .status(201)
+      .json({ message: "Product deleted successfully", data: product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const products = await Product.find({});
