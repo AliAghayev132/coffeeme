@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const Shop = require("../schemas/Shop");
-const Product = require("../schemas/Product");
+const Shop = require("../../schemas/Shop");
+const Product = require("../../schemas/Product");
 const multer = require("multer");
 const fs = require("fs");
 const validateAccessToken = require("../middlewares/validateToken");
 const calculateWalkingTimes = require("../utils/calculateWalkingTimes");
 const path = require("path");
-const User = require("../schemas/User");
+const User = require("../../schemas/User");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = `public/uploads/shops/${req.body.name}-${req.body.address}`;
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + "_" + file.originalname.toLowerCase());
   },
 });
-const Partner = require("../schemas/Partner");
+const Partner = require("../../schemas/Partner");
 const upload = multer({ storage: storage });
 
 //NOTE: Endpoints For Shops
