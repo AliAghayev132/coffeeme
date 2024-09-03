@@ -93,9 +93,10 @@ router.post("/", validateAccessToken, async (req, res) => {
     });
 
     // Save the order and update the user's order list
+    console.log(shopId);
     const savedOrder = await newOrder.save();
     await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
-    await Partner.findByIdAndUpdate(
+    await Partner.findOneAndUpdate(
       { shop: shopId },
       {
         $push: { orders: savedOrder._id },
