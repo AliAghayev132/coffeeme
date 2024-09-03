@@ -62,10 +62,12 @@ const productSchema = new Schema({
 });
 
 productSchema.pre("save", function (next) {
-  console.log("hey",this);
+  console.log("hey");
   if (this.isModified("price") || this.isModified("discount")) {
+    console.log("Bura","hello");
     if (this.discount && this.discount > 0) {
       this.discountedPrice = this.price - (this.price * this.discount) / 100;
+      console.log(this.discountedPrice,this.discount,this.price);
     } else {
       this.discountedPrice = this.price;
     }
