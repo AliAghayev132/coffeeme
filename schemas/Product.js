@@ -14,6 +14,10 @@ const sizeSchema = new Schema({
     type: Number,
     required: true,
   },
+  discountedPrice:{
+    type:Number,
+    required:false,
+  }
 });
 
 const productSchema = new Schema({
