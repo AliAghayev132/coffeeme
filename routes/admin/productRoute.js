@@ -77,7 +77,6 @@ router.post(
     }
   }
 );
-
 router.delete("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -107,7 +106,6 @@ router.delete("/:id", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 router.put(
   "/:id",
   validateAccessToken,
@@ -168,7 +166,6 @@ router.put(
     }
   }
 );
-
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const products = await Product.find({});
@@ -180,5 +177,33 @@ router.get("/", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+router.delete('/:productId/sizes/:sizeName', validateAccessToken, async (req, res) => {
+  try {
+    const { productId, sizeName } = req.params;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const updatedSizes = product.sizes.filter(size => size.size !== sizeName);
+
+    if (updatedSizes.length === 1) {
+      await product.remove();
+      return res.status(200).json({ message: "Product deleted because only one size remained" });
+    }
+
+    product.sizes = updatedSizes;
+    await product.save();
+
+    return res.status(200).json({ message: "Size removed successfully", data: product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 module.exports = router;
