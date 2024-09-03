@@ -6,7 +6,7 @@ const orderItemSchema = new Schema({
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
   discount: { type: Number, required: false },
-  discountedPrice:{ type: Number, required: false },
+  discountedPrice: { type: Number, required: false },
 });
 
 const orderSchema = new Schema({
@@ -25,7 +25,7 @@ const orderSchema = new Schema({
     type: Number,
     required: false,
   },
-  totalDiscountedPrice:{
+  totalDiscountedPrice: {
     type: Number,
     required: false,
   },
@@ -38,13 +38,13 @@ const orderSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  finishedDate:{
+  finishedDate: {
     type: Date,
-    default: null
+    default: null,
   },
   status: {
     type: String,
-    enum: ["[Pending]", "Processing", "Completed", "Cancelled"],
+    enum: ["Pending", "Processing", "Completed", "Cancelled"],
     default: "Pending",
   },
 });
