@@ -62,7 +62,7 @@ const productSchema = new Schema({
 });
 
 productSchema.pre("save", function (next) {
-  console.log("hey");
+  console.log("hey",this.isModified("price"),this.isModified("discount"));
   if (this.isModified("price") || this.isModified("discount")) {
     console.log("Bura","hello");
     if (this.discount && this.discount > 0) {
