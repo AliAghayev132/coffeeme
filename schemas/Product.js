@@ -71,11 +71,13 @@ const productSchema = new Schema({
 });
 productSchema.pre('save', function (next) {
   this.sizes = this.sizes.map(size => {
+    console.log("Evvel",size);
     if (size.discount && size.discount > 0) {
       size.discountedPrice = size.price - (size.price * size.discount) / 100;
     } else {
       size.discountedPrice = size.price;
     }
+    console.log("Sonra",size);
     return size;
   });
 
