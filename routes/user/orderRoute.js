@@ -68,13 +68,13 @@ router.post("/", validateAccessToken, async (req, res) => {
 
     const totalPrice = orderedItems.reduce((sum, item) => {
       const product = products.find(p => p._id.toString() === item.productId.toString());
-      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      const selectedSize = product.sizes.find(size => size.size === item.productSize);
       return sum + item.productCount * (selectedSize.price || 0);
     }, 0);
 
     const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
       const product = products.find(p => p._id.toString() === item.productId.toString());
-      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      const selectedSize = product.sizes.find(size => size.size === item.productSize);
       return sum + item.productCount * (selectedSize.discountedPrice || 0);
     }, 0);
 
@@ -82,7 +82,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       user: userId,
       items: orderedItems.map(item => {
         const product = products.find(p => p._id.toString() === item.productId.toString());
-        const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+        const selectedSize = product.sizes.find(size => size.size === item.productSize);
         return {
           product: item.productId,
           quantity: item.productCount,
