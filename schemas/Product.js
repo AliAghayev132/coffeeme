@@ -72,6 +72,10 @@ const productSchema = new Schema({
     enum: ["STANDARD_DISCOUNT", "SPECIAL_DISCOUNT"],
     required: true,
   },
+  rayting:{
+    type:Number,
+    default:5,
+  }
 });
 productSchema.pre('save', function (next) {
   this.sizes = this.sizes.map(size => {

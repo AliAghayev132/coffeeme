@@ -24,8 +24,11 @@ router.get("/", validateAccessToken, async (req, res) => {
 router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shopId, message } = req.body;
-
     const userId = req.user._id;
+
+    if (!orderedItems || orderedItems.length <= 0) {
+      return res.status(400).json({ message: "No ordered items provided" });
+    }
 
     const user = await User.findById(userId);
     if (!user) {
@@ -33,7 +36,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     }
 
     if (user.orders.length >= 3) {
-      return res.status(400).json({ message: "Your have reached order limit" });
+      return res.status(400).json({ message: "You have reached the order limit" });
     }
 
     const shop = await Shop.findById(shopId);
@@ -41,68 +44,63 @@ router.post("/", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
-    const productIds = orderedItems.map((item) => item.productId);
+    const productIds = orderedItems.map(item => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
-    const validItems = orderedItems.every((item) => {
-      const product = products.find(
-        (p) => p._id.toString() === item.productId.toString()
-      );
-      return product && product.shop.id.toString() === shopId.toString();
+    const validItems = orderedItems.every(item => {
+      const product = products.find(p => p._id.toString() === item.productId.toString());
+      if (!product || product.shop.id.toString() !== shopId.toString()) {
+        return false;
+      }
+
+      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      return selectedSize !== undefined;
     });
 
     if (!validItems) {
       return res.status(400).json({
-        message: "One or more items are invalid or not in the specified shop",
+        message: "One or more items are invalid, or the selected size does not exist for the product",
       });
     }
 
     const totalPrice = orderedItems.reduce((sum, item) => {
-      const product = products.find(
-        (p) => p._id.toString() === item.productId.toString()
-      );
-      return sum + item.productCount * (product.price || 0);
+      const product = products.find(p => p._id.toString() === item.productId.toString());
+      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      return sum + item.productCount * (selectedSize.price || 0);
     }, 0);
 
     const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
-      const product = products.find(
-        (p) => p._id.toString() === item.productId.toString()
-      );
-      return sum + item.productCount * (product.discountedPrice || 0);
+      const product = products.find(p => p._id.toString() === item.productId.toString());
+      const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+      return sum + item.productCount * (selectedSize.discountedPrice || 0);
     }, 0);
 
     const newOrder = new Order({
       user: userId,
-      items: orderedItems.map((item) => ({
-        product: item.productId,
-        quantity: item.productCount,
-        price: products.find(
-          (p) => p._id.toString() === item.productId.toString()
-        ).price,
-        discount: products.find(
-          (p) => p._id.toString() === item.productId.toString()
-        ).discount,
-        discountedPrice: products.find(
-          (p) => p._id.toString() === item.productId.toString()
-        ).discountedPrice,
-      })),
+      items: orderedItems.map(item => {
+        const product = products.find(p => p._id.toString() === item.productId.toString());
+        const selectedSize = product.sizes.find(size => size.size === item.selectedSize);
+        return {
+          product: item.productId,
+          quantity: item.productCount,
+          price: selectedSize.price,
+          discount: selectedSize.discount,
+          discountedPrice: selectedSize.discountedPrice,
+        };
+      }),
       shop: shopId,
       totalPrice,
       totalDiscountedPrice,
       message,
     });
 
-    // Save the order and update the user's order list
-    console.log(shopId);
     const savedOrder = await newOrder.save();
     await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
     await Partner.findOneAndUpdate(
       { shop: shopId },
-      {
-        $push: { orders: savedOrder._id },
-      }
+      { $push: { orders: savedOrder._id } }
     );
-    // Return the saved order
+
     return res.status(201).json(savedOrder);
   } catch (error) {
     console.error(error);
