@@ -236,6 +236,8 @@ router.post("/login", async (req, res) => {
   try {
     const { password, email } = req.body;
     const user = await User.findOne({ email }).lean();
+    console.log(user);
+    
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
@@ -297,7 +299,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
     if(!user){
       return res.status(404).json({success:false,message:"User Not found"});
     }
-
+    console.log(user);
     user.password = undefined;
     user.__v = undefined;
 
