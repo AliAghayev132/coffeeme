@@ -9,8 +9,8 @@ const validateAccessToken = require("../../middlewares/validateToken");
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
-    const { _id } = req.user;
-    const user = User.findById(_id).populate("Order");
+    const { email } = req.user;
+    const user = User.findOne({email}).populate("Order");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -24,13 +24,13 @@ router.get("/", validateAccessToken, async (req, res) => {
 router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shopId, message } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.email;
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({email});
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

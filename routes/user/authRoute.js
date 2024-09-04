@@ -315,7 +315,7 @@ router.post(
   upload.single("photo"), // Use the field name 'photo'
   async (req, res) => {
     try {
-      const email = req.user.email; // JWT'den kullanıcı ID'sini alın
+      const {email} = req.user; // JWT'den kullanıcı ID'sini alın
       const imagePath = req.file.filename; // Dosya yolunu alın
 
       const user = await User.findOne({ email });
