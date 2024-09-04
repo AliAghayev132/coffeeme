@@ -41,6 +41,7 @@ const handleWebSocketConnection = (wss) => {
             console.error("WebSocket connection error:", error);
             ws.close();
         }
+        console.log(USERS_CONNECTIONS);
     });
 };
 
