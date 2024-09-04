@@ -12,9 +12,9 @@ const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.p
 const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
-const httpsServer = https.createServer(credentials, app);
+const server = https.createServer(credentials, app);
 
-const wss = new WebSocket.Server({ server: httpsServer });
+const wss = new WebSocket.Server({ server });
 
 server.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (ws) => {
