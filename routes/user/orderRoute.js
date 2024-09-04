@@ -24,7 +24,7 @@ router.get("/", validateAccessToken, async (req, res) => {
 router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shopId, message } = req.body;
-    const userId = req.user.email;
+    const {email} = req.user;
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
@@ -98,7 +98,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     });
 
     const savedOrder = await newOrder.save();
-    await User.findByIdAndUpdate(userId, { $push: { orders: savedOrder._id } });
+    await User.findOneAndUpdate({email}, { $push: { orders: savedOrder._id } });
     await Partner.findOneAndUpdate(
       { shop: shopId },
       { $push: { orders: savedOrder._id } }
