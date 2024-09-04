@@ -9,8 +9,8 @@ const https = require('https');
 require("dotenv").config();
 
 let server;
+
 if (process.env.NODE_ENV === 'production') {
-  // HTTPS configuration
   try {
     const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
     const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
