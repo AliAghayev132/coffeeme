@@ -7,6 +7,7 @@ const orderItemSchema = new Schema({
   price: { type: Number, required: true },
   discount: { type: Number, required: false },
   discountedPrice: { type: Number, required: false },
+  size: { type: String, require: true }
 });
 
 const orderSchema = new Schema({

@@ -14,9 +14,9 @@ const sizeSchema = new Schema({
     type: Number,
     required: true,
   },
-  discountedPrice:{
-    type:Number,
-    required:false,
+  discountedPrice: {
+    type: Number,
+    required: false,
   }
 });
 
@@ -72,20 +72,20 @@ const productSchema = new Schema({
     enum: ["STANDARD_DISCOUNT", "SPECIAL_DISCOUNT"],
     required: true,
   },
-  rayting:{
-    type:Number,
-    default:5,
+  rayting: {
+    type: Number,
+    default: 5,
   }
 });
 productSchema.pre('save', function (next) {
   this.sizes = this.sizes.map(size => {
-    console.log("Evvel",size);
+    console.log("Evvel", size);
     if (size.discount && size.discount > 0) {
       size.discountedPrice = size.price - (size.price * size.discount) / 100;
     } else {
       size.discountedPrice = size.price;
     }
-    console.log("Sonra",size);
+    console.log("Sonra", size);
     return size;
   });
 
