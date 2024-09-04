@@ -9,21 +9,41 @@ router.get("/", validateAccessToken, async (req, res) => {
     try {
         const { username } = req.user;
 
+        // Find the partner and populate orders with user and product details
         const partner = await Partner.findOne({ username }).populate({
             path: 'orders',
-            populate: {
-                path: 'user',
-                select: 'firstname secondname email phone' // Add other fields you need here
-            }
+            populate: [
+                {
+                    path: 'user',
+                    select: 'firstname secondname email phone' // Add other fields you need here
+                },
+                {
+                    path: 'items.product',
+                    select: 'name category price' // Adjust fields based on your Product schema
+                }
+            ]
         });
 
         if (!partner) {
             return res.status(404).json({ success: false, message: "Partner not found" });
         }
-        console.log(partner.orders[0].items);
+
+        // Create the orders with user and product details
         const ordersWithUserDetails = partner.orders.map(order => ({
             _id: order._id,
-            items: order.items,
+            items: order.items.map(item => ({
+                _id: item._id,
+                product: {
+                    name: item.product.name,
+                    category: item.product.category,
+                    price: item.product.price
+                },
+                quantity: item.quantity,
+                price: item.price,
+                discount: item.discount,
+                discountedPrice: item.discountedPrice,
+                size: item.size
+            })),
             shop: order.shop,
             totalPrice: order.totalPrice,
             totalDiscountedPrice: order.totalDiscountedPrice,
@@ -40,13 +60,12 @@ router.get("/", validateAccessToken, async (req, res) => {
             }
         }));
 
-
-        return res.status(200).json({ success: true, message: "All orders got", ordersWithUserDetails })
+        return res.status(200).json({ success: true, message: "All orders got", orders: ordersWithUserDetails });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error" });
     }
-})
+});
 router.put("/:id", validateAccessToken, async (req, res) => {
 
 })

@@ -29,15 +29,15 @@ router.get("/next", validateAccessToken, async (req, res) => {
 router.put("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password,shopPercentage,fullname } = req.body;
+    const { username, password, shopPercentage, fullname } = req.body;
     const partner = await Partner.findById(id);
 
-    if(!username || !password || !shopPercentage){
+    if (!username || !password || !shopPercentage) {
       return res
-      .status(400)
-      .json({ success: false, message: "All Fields are required" });
+        .status(400)
+        .json({ success: false, message: "All Fields are required" });
     }
-    
+
     if (!partner) {
       return res
         .status(404)

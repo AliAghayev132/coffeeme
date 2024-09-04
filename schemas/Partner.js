@@ -10,7 +10,7 @@ const PartnerSchema = new Schema({
     type: String,
     required: false,
     unique: true,
-    default: function() {
+    default: function () {
       return `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     },
   },
@@ -46,4 +46,3 @@ const PartnerSchema = new Schema({
 
 const Partner = mongoose.model("Partner", PartnerSchema);
 module.exports = Partner;
- 
