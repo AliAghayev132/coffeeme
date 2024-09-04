@@ -267,7 +267,7 @@ router.post("/login", async (req, res) => {
       }
     );
 
-    SOCKET_CONNECTIONS[user._id] = null;
+    USERS_CONNECTIONS[user._id] = null;
 
     return res.status(200).json({ refreshToken, accessToken, user });
   } catch (error) {
