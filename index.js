@@ -1,11 +1,49 @@
-const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-
+const WebSocket = require('ws');
+const fs = require('fs');
+const https = require('https');
 require("dotenv").config();
+/etc/letsencrypt/live/coffeeme.app/privkey.pem
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
+
+const wss = new WebSocket.Server({ noServer: true });
+
+const server = https.createServer(credentials, app);
+
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
+
+wss.on('connection', (ws) => {
+  console.log('A new client connected.');
+
+  // Event listener for incoming messages
+  ws.on('message', (message) => {
+    console.log('Received message:', message.toString());
+
+    // Broadcast the message to all connected clients
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message.toString());
+      }
+    });
+  });
+
+  // Event listener for client disconnection
+  ws.on('close', () => {
+    console.log('A client disconnected.');
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.use(
   cors({
@@ -65,10 +103,10 @@ const options = {
 };
 const swaggerSpec = swaggerJsdoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.listen(PORT, (err) => {
+server.listen(PORT, (err) => {
   if (err) {
     console.error("Failed to start the server", err);
     process.exit(1); // Exit if the server fails to start
   }
   console.log(`App is running on port ${PORT}`);
-});
+}); 
