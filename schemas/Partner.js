@@ -6,7 +6,7 @@ const PartnerSchema = new Schema({
   username: {
     type: String,
     required: false,
-    unique: false,
+    unique: true,
   },
   password: {
     type: String,

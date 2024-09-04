@@ -6,8 +6,8 @@ const validateAccessToken = require("../../middlewares/validateToken");
 
 router.get("/", validateAccessToken, async (req, res) => {
     try {
-        const { email } = req.user;
-        const partner = await Partner.findOne({ email }).populate("orders");
+        const { username } = req.user;
+        const partner = await Partner.findOne({ username }).populate("orders");
 
         if (partner) {
             return res.status(404).json({ success: false, message: "Partner not found" });
