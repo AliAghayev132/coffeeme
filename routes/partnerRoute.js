@@ -4,6 +4,6 @@ const authRouter = require("./partner/authRoute");
 const orderRouter = require("./partner/orderRoute");
 
 router.use("/auth", authRouter);
-router.use("/order", orderRouter);
+router.use("/orders", orderRouter);
 
 module.exports = router;
