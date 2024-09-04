@@ -279,7 +279,7 @@ router.post("/refresh-token", async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
-
+    const {email} = decoded;
     // Yeni access token oluştur
     const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
       expiresIn: "10m",
