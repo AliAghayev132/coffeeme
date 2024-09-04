@@ -21,10 +21,12 @@ const handleWebSocketConnection = (wss) => {
                 }
 
                 const { email } = decoded;
-                const user = await User.findOne({ email }).exec(); // Ensure the query is awaited
-
+                const user = await User.findOne({ email }); // Ensure the query is awaited
+                console.log(user);
+                
                 if (user && user._id) {
                     USERS_CONNECTIONS[user._id] = ws; // Store the WebSocket connection by user ID
+                    console.log({USERS_CONNECTIONS});
 
                     ws.on('message', (message) => {
                         console.log(`Received message from user ${user._id}:`, message);
