@@ -13,6 +13,7 @@ const {
   validateAzerbaijanPhoneNumber,
   validatePassword,
 } = require("../../utils/validation");
+const { SOCKET_CONNECTIONS } = require("../..");
 
 
 const storage = (folderName) =>
@@ -248,7 +249,6 @@ router.post("/login", async (req, res) => {
     const accessToken = jwt.sign(
       {
         email,
-        _id: user._id,
       },
       process.env.ACCESS_SECRET_KEY,
       {
@@ -258,13 +258,15 @@ router.post("/login", async (req, res) => {
     const refreshToken = jwt.sign(
       {
         email,
-        _id: user._id,
       },
       process.env.REFRESH_SECRET_KEY,
       {
         expiresIn: 24 * 60 * 60 * 15,
       }
     );
+
+    SOCKET_CONNECTIONS[user._id] = null;
+
     return res.status(200).json({ refreshToken, accessToken, user });
   } catch (error) {
     console.error(error);
@@ -277,10 +279,9 @@ router.post("/refresh-token", async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
-    const { email, _id } = decoded;
 
     // Yeni access token oluştur
-    const newToken = jwt.sign({ email, _id }, process.env.ACCESS_SECRET_KEY, {
+    const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
       expiresIn: "10m",
     });
     return res.status(200).json({ accessToken: newToken });

@@ -42,6 +42,10 @@ const userSchema = new Schema(
       enum: ["standart", "premium"],
       default: "standart",
     },
+    role:{
+      type:String,
+      default:"user",
+    },
     orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Reference to Product model
     // favorites:{}
     // history:{}

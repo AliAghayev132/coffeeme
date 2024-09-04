@@ -15,33 +15,8 @@ const credentials = { key: privateKey, cert: certificate };
 const server = https.createServer(credentials, app);
 
 const wss = new WebSocket.Server({ server });
-
-server.on('upgrade', (request, socket, head) => {
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    wss.emit('connection', ws, request);
-  });
-});
-
-wss.on('connection', (ws) => {
-  console.log('A new client connected.');
-
-  // Event listener for incoming messages
-  ws.on('message', (message) => {
-    console.log('Received message:', message.toString());
-
-    // Broadcast the message to all connected clients
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message.toString());
-      }
-    });
-  });
-
-  // Event listener for client disconnection
-  ws.on('close', () => {
-    console.log('A client disconnected.');
-  });
-});
+const { handleWebSocketConnection } = require('./controllers/wsController');
+handleWebSocketConnection(wss);
 
 const PORT = process.env.PORT || 3000;
 app.use(

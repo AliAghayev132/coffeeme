@@ -27,6 +27,10 @@ const PartnerSchema = new Schema({
     required: false,
     unique: false,
   },
+  role:{
+    type:String,
+    default:"partner",
+  },
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
