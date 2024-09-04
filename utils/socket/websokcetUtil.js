@@ -1,4 +1,4 @@
-import User from '../../schemas/User';
+const User = require('../../schemas/User');
 import jwt from 'jsonwebtoken';
 
 export const USERS_CONNECTIONS = {};
