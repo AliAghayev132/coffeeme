@@ -294,6 +294,10 @@ router.get("/user", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const user = await User.findOne({ email });
+    if(!user){
+      return res.status(404).json({success:false,message:"User Not found"});
+    }
+    
     user.password = undefined;
     user.__v = undefined;
 
