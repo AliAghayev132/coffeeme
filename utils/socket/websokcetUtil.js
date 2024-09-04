@@ -1,9 +1,9 @@
 const User = require('../../schemas/User');
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-export const USERS_CONNECTIONS = {};
-export const PARTNERS_CONNECTIONS = {};
-export const ADMIN_CONNECTIONS = {};
+const USERS_CONNECTIONS = {};
+const PARTNERS_CONNECTIONS = {};
+const ADMIN_CONNECTIONS = {};
 
 const handleWebSocketConnection = (wss) => {
     wss.on('connection', async (ws, req) => {
