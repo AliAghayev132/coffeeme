@@ -15,7 +15,7 @@ const credentials = { key: privateKey, cert: certificate };
 const server = https.createServer(credentials, app);
 
 const wss = new WebSocket.Server({ server });
-const { handleWebSocketConnection } = require('./controllers/wsController');
+const { handleWebSocketConnection } = require("./utils/socket/websokcetUtil");
 handleWebSocketConnection(wss);
 
 const PORT = process.env.PORT || 3000;
