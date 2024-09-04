@@ -13,7 +13,7 @@ const {
   validateAzerbaijanPhoneNumber,
   validatePassword,
 } = require("../../utils/validation");
-const { SOCKET_CONNECTIONS } = require("../..");
+const { SOCKET_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 
 
 const storage = (folderName) =>
@@ -297,7 +297,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
     if(!user){
       return res.status(404).json({success:false,message:"User Not found"});
     }
-    
+
     user.password = undefined;
     user.__v = undefined;
 
