@@ -79,7 +79,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     }, 0);
 
     const newOrder = new Order({
-      user: userId,
+      user: user._id,
       items: orderedItems.map(item => {
         const product = products.find(p => p._id.toString() === item.productId.toString());
         const selectedSize = product.sizes.find(size => size.size === item.productSize);
