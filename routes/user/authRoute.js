@@ -13,7 +13,7 @@ const {
   validateAzerbaijanPhoneNumber,
   validatePassword,
 } = require("../../utils/validation");
-const { SOCKET_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 
 
 const storage = (folderName) =>
