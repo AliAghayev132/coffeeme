@@ -10,7 +10,7 @@ const validateAccessToken = require("../../middlewares/validateToken");
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
-    const user = User.findOne({email}).populate("Order");
+    const user = User.findOne({ email }).populate("Order");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -24,13 +24,13 @@ router.get("/", validateAccessToken, async (req, res) => {
 router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shopId, message } = req.body;
-    const {email} = req.user;
+    const { email } = req.user;
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -47,14 +47,14 @@ router.post("/", validateAccessToken, async (req, res) => {
     const productIds = orderedItems.map(item => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
-    
+
     const validItems = orderedItems.every(item => {
       const product = products.find(p => p._id.toString() === item.productId.toString());
       if (!product || product.shop.id.toString() !== shopId.toString()) {
         return false;
       }
 
-      
+
 
       const selectedSize = product.sizes.find(size => size.size === item.productSize);
       return selectedSize !== undefined;
@@ -89,6 +89,7 @@ router.post("/", validateAccessToken, async (req, res) => {
           price: selectedSize.price,
           discount: selectedSize.discount,
           discountedPrice: selectedSize.discountedPrice,
+          size:selectedSize.size
         };
       }),
       shop: shopId,
@@ -98,13 +99,13 @@ router.post("/", validateAccessToken, async (req, res) => {
     });
 
     const savedOrder = await newOrder.save();
-    await User.findOneAndUpdate({email}, { $push: { orders: savedOrder._id } });
+    await User.findOneAndUpdate({ email }, { $push: { orders: savedOrder._id } });
     await Partner.findOneAndUpdate(
       { shop: shopId },
       { $push: { orders: savedOrder._id } }
     );
 
-    return res.status(201).json(savedOrder);
+    return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error creating order", error });
