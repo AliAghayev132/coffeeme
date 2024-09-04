@@ -35,6 +35,7 @@ const productSchema = new Schema({
     type: String,
     required: true,
     enum: ["none", "takeaway", "cup", "all"],
+    default: "none"
   },
   shop: {
     id: {

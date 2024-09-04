@@ -1,12 +1,18 @@
-// Partner.js
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const PartnerSchema = new Schema({
+  fullname: {
+    type: String,
+    required: false,
+  },
   username: {
     type: String,
     required: false,
     unique: true,
+    default: function() {
+      return `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    },
   },
   password: {
     type: String,
@@ -22,16 +28,22 @@ const PartnerSchema = new Schema({
     type: Number,
     default: 0,
   },
-   phone: {
+  phone: {
     type: String,
     required: false,
     unique: false,
   },
-  role:{
-    type:String,
-    default:"partner",
+  role: {
+    type: String,
+    default: "partner",
   },
+  shopPercentage: {
+    type: Number,
+    required: true,
+    default: 25,
+  }
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
 module.exports = Partner;
+ 

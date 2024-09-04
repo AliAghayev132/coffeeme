@@ -8,13 +8,26 @@ const fs = require('fs');
 const https = require('https');
 require("dotenv").config();
 
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
+let server;
+if (process.env.NODE_ENV === 'production') {
+  // HTTPS configuration
+  try {
+    const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
+    const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
+    const credentials = { key: privateKey, cert: certificate };
+    server = https.createServer(credentials, app);
+    console.log("HTTPS server running");
+  } catch (error) {
+    console.error("Failed to load HTTPS credentials", error);
+    process.exit(1);
+  }
+} else {
+  // HTTP configuration
+  server = require('http').createServer(app);
+  console.log("HTTP server running");
+}
 
-const server = https.createServer(credentials, app);
-// const server = https.createServer(app);
-
+// WebSocket setup
 const wss = new WebSocket.Server({ server });
 const { handleWebSocketConnection } = require("./utils/socket/websokcetUtil");
 handleWebSocketConnection(wss);
@@ -30,9 +43,9 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const mongoose = require("mongoose");
 
 // MongoDB connection with error handling
+const mongoose = require("mongoose");
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
@@ -45,19 +58,14 @@ const partnerRouter = require("./routes/partnerRoute");
 const adminRouter = require("./routes/adminRoute");
 const userRouter = require("./routes/userRoute");
 
-
 app.use("/api/admin", adminRouter);
 app.use("/api/users", userRouter);
 app.use("/api/partners", partnerRouter);
-
-
 app.use("/public", express.static("public"));
-// Starting the server with improved error handling
 
 /********************
        Swagger
 *******************/
-
 const swaggerDefinition = {
   openapi: "3.0.0",
   info: {
@@ -67,21 +75,24 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: "https://coffeeme.app/api",
-      description: "Development server",
+      url: process.env.NODE_ENV === 'production' ? "https://coffeeme.app/api" : "http://localhost:3000/api",
+      description: process.env.NODE_ENV === 'production' ? "Production server" : "Development server",
     },
   ],
 };
+
 const options = {
   swaggerDefinition,
-  apis: ["./routes/*.js"], // Route dosyalarınızın yerini belirtin
+  apis: ["./routes/*.js"], // Specify the route files
 };
+
 const swaggerSpec = swaggerJsdoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 server.listen(PORT, (err) => {
   if (err) {
     console.error("Failed to start the server", err);
     process.exit(1); // Exit if the server fails to start
   }
   console.log(`App is running on port ${PORT}`);
-}); 
+});

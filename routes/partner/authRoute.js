@@ -15,7 +15,6 @@ router.post("/login", async (req, res) => {
     if (!passwordMatch) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
-
     const accessToken = jwt.sign(
       {
         username
@@ -44,7 +43,6 @@ router.post("/login", async (req, res) => {
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const partner = req.body.user;
-    console.log(partner);
     if (!partner) {
       return res.status(404).json({ message: "Partner not found" });
     }
@@ -59,10 +57,14 @@ router.post("/refresh-token", async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
-    const { email } = decoded;
+    const {username} = decoded;
+    const partner = await Partner.findOne({username});
 
-    // Yeni access token oluştur
-    const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found" });
+    }
+
+    const newToken = jwt.sign({ username: partner.username }, process.env.ACCESS_SECRET_KEY, {
       expiresIn: "10m",
     });
     return res.status(200).json({ accessToken: newToken });

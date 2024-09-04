@@ -6,12 +6,12 @@ const otpSchema = new Schema({
   email: {
     type: String,
     require: true,
-    index:true,
+    index: true,
   },
-  phone:{
+  phone: {
     type: String,
-    require:true,
-    index:true,
+    require: true,
+    index: true,
   },
   otp: {
     type: String,
@@ -22,6 +22,7 @@ const otpSchema = new Schema({
     default: Date.now,
     expires: "2m",
   },
+
 });
 
 async function sendVerificationEmail(email, otp) {
