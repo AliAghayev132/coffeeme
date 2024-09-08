@@ -22,7 +22,6 @@ const handleWebSocketConnection = (wss) => {
 
                 const { email } = decoded;
                 const user = await User.findOne({ email }); // Ensure the query is awaited
-                console.log(user);
                 
                 if (user && user._id) {
                     USERS_CONNECTIONS[user._id] = ws; // Store the WebSocket connection by user ID

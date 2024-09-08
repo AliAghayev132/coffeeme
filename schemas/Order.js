@@ -7,7 +7,19 @@ const orderItemSchema = new Schema({
   price: { type: Number, required: true },
   discount: { type: Number, required: false },
   discountedPrice: { type: Number, required: false },
-  size: { type: String, require: true }
+  size: { type: String, require: true },
+});
+
+const statusHistorySchema = new Schema({
+  status: {
+    type: String,
+    enum: ["pending", "preparing", "finished", "delivered", "cancelled"],
+    required: true,
+  },
+  changedAt: {
+    type: Date,
+    default: Date.now,
+  }
 });
 
 const orderSchema = new Schema({
@@ -45,9 +57,26 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ["Pending", "Processing", "Completed", "Cancelled"],
+    enum: ["pending", "preparing", "finished", "delivered", "cancelled"],
     default: "Pending",
   },
+  statusHistory: [statusHistorySchema], // Track status changes
+});
+
+orderSchema.pre('save', function (next) {
+  const order = this;
+  if (order.isModified('status')) {
+    order.statusHistory.push({
+      status: order.status,
+      changedAt: new Date(),
+    });
+
+    if (order.status === 'completed') {
+      order.finishedDate = new Date();
+    }
+  }
+
+  next();
 });
 
 const Order = mongoose.model("Order", orderSchema);
