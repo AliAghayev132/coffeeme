@@ -58,10 +58,10 @@ router.post("/send-otp", async (req, res) => {
 
     let otp = await otpGenerator();
 
-    await Otp.create({ email, otp, phone });
+    const newOtp = await Otp.create({ email, otp, phone });
     return res.status(200).json({
       success: true,
-      createdAt: otp.createdAt,
+      createdAt: newOtp.createdAt,
       message: "OTP sent successfully",
     });
   } catch (error) {
