@@ -43,7 +43,7 @@ router.post("/send-otp", async (req, res) => {
       return res.status(400).json({ error: "Phone Number is not valid" });
 
     const [existingUser, existingOtp] = await Promise.all([
-      User.findOne({ $and: [{ email }, { phone }] }),
+      User.findOne({ $or: [{ email }, { phone }] }),
       Otp.findOneAndDelete({ email }),
     ]);
 
