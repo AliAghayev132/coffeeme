@@ -7,9 +7,7 @@ const WebSocket = require('ws');
 const fs = require('fs');
 const https = require('https');
 require("dotenv").config();
-
 let server;
-
 if (process.env.NODE_ENV === 'production') {
   try {
     const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
@@ -44,7 +42,8 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection with error handling
+// Order Timer
+require("./utils/cronJobs/orderCron");
 const mongoose = require("mongoose");
 mongoose
   .connect(process.env.MONGO_URI)

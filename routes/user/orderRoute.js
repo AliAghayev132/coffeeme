@@ -6,6 +6,7 @@ const User = require("../../schemas/User"); // User model
 const Shop = require("../../schemas/Shop");
 const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
+const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
@@ -101,6 +102,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       totalPrice,
       totalDiscountedPrice,
       message,
+      status: "pending",
     });
 
     const savedOrder = await newOrder.save();
@@ -109,7 +111,18 @@ router.post("/", validateAccessToken, async (req, res) => {
       { shop: reqShop.id },
       { $push: { orders: savedOrder._id } }
     );
-
+    
+    const partner = await Partner.findOne({ shop: reqShop.id });
+    if (partner && PARTNERS_CONNECTIONS[partner._id]) {
+      PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
+        type: 'ORDER_STATUS',
+        state:"NEW",
+        user: {
+          firstname: user.firstname,
+          secondname: user.secondname
+        },
+      }));
+    }
     return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
     console.error(error);

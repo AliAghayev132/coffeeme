@@ -21,7 +21,6 @@ const statusHistorySchema = new Schema({
     default: Date.now,
   }
 });
-
 const orderSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
@@ -47,22 +46,19 @@ const orderSchema = new Schema({
     required: false,
     default: null,
   },
-  createdDate: {
+  preparingTime: {
     type: Date,
-    default: Date.now,
-  },
-  finishedDate: {
-    type: Date,
-    default: null,
   },
   status: {
     type: String,
     enum: ["pending", "preparing", "finished", "delivered", "cancelled"],
-    default: "Pending",
   },
-  statusHistory: [statusHistorySchema], // Track status changes
+  statusHistory: [statusHistorySchema],
+  rayting: {
+    type: Number,
+    default: 5,
+  }
 });
-
 orderSchema.pre('save', function (next) {
   const order = this;
   if (order.isModified('status')) {
@@ -70,12 +66,7 @@ orderSchema.pre('save', function (next) {
       status: order.status,
       changedAt: new Date(),
     });
-
-    if (order.status === 'completed') {
-      order.finishedDate = new Date();
-    }
   }
-
   next();
 });
 

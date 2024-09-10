@@ -39,20 +39,19 @@ const userSchema = new Schema(
     },
     category: {
       type: String,
-      enum: ["standart", "premium"],
-      default: "standart",
+      enum: ["standard", "premium"],
+      default: "standard",
     },
     role:{
       type:String,
       default:"user",
     },
-    orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Reference to Product model
-    // favorites:{}
-    // history:{}
-    // notifications:{}
+    orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Active orders
+    history: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Canceled/Finished orders
   },
   { versionKey: false }
 );
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
+  

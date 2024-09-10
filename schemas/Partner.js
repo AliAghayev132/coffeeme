@@ -41,7 +41,8 @@ const PartnerSchema = new Schema({
     type: Number,
     required: true,
     default: 25,
-  }
+  },
+  history: [{ type: Schema.Types.ObjectId, ref: "Order" }]
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
