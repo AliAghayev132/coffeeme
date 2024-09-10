@@ -5,6 +5,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const WebSocket = require('ws');
 const fs = require('fs');
+const path = require("path");
 const https = require('https');
 require("dotenv").config();
 let server;
@@ -62,11 +63,11 @@ app.use("/api/users", userRouter);
 app.use("/api/partners", partnerRouter);
 app.use("/public", express.static("public"));
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, './client/dist')));
 
 // Tüm rotaları index.html'e yönlendir
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  res.sendFile(path.join(__dirname, './client/dist/index.html'));
 });
 /********************
        Swagger
