@@ -57,10 +57,12 @@ mongoose
 const partnerRouter = require("./routes/partnerRoute");
 const adminRouter = require("./routes/adminRoute");
 const userRouter = require("./routes/userRoute");
+const subscriberRouter = require("./routes/subscriberRoute");
 
 app.use("/api/admin", adminRouter);
 app.use("/api/users", userRouter);
 app.use("/api/partners", partnerRouter);
+app.use("/api/subscribers", subscriberRouter);
 app.use("/public", express.static("public"));
 
 app.use(express.static(path.join(__dirname, './client/dist')));

@@ -10,7 +10,6 @@ const { PARTNERS_CONNECTIONS, USERS_CONNECTIONS } = require('../../utils/socket/
 router.get("/", validateAccessToken, async (req, res) => {
     try {
         const { username } = req.user;
-
         const partner = await Partner.findOne({ username }).populate({
             path: 'orders',
             populate: [
