@@ -4,7 +4,7 @@ const validateEmail = (email) => {
 };
 
 const validateAzerbaijanPhoneNumber = (phoneNumber) => {
-  const azPhoneNumberRegex = /^(?:\+994|994|0)?(50|51|55|70|77)\d{7}$/;
+  const azPhoneNumberRegex = /^(?:\+994|994|0)?(50|99|51|55|70|77)\d{7}$/;
   return azPhoneNumberRegex.test(phoneNumber);
 };
 

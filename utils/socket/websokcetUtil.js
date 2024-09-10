@@ -4,71 +4,72 @@ const jwt = require('jsonwebtoken');
 
 const USERS_CONNECTIONS = {};
 const PARTNERS_CONNECTIONS = {};
-const ADMIN_CONNECTIONS = {};
+const ADMIN_CONNECTIONS = {}; // Not used in this snippet, but might be used elsewhere
 
 const handleWebSocketConnection = (wss) => {
     wss.on('connection', async (ws, req) => {
         try {
-            const url = req.url.split('?')[1]; // Extract the query string part
+            // Extract the query string from the URL
+            const url = req.url.split('?')[1];
             const searchParams = new URLSearchParams(url);
 
             const token = searchParams.get('token');
             const role = searchParams.get('role');
+
             if (!token || !role) {
-                ws.close();
+                ws.close(4000, 'Token or role missing'); // Close with a reason
                 return;
             }
 
             jwt.verify(token, process.env.ACCESS_SECRET_KEY, async (err, decoded) => {
                 if (err) {
-                    ws.close();
+                    ws.close(4001, 'Invalid token'); // Close with a reason
                     return;
                 }
 
-                if (role === "user") {
+                if (role === 'user') {
                     const { email } = decoded;
-
                     const user = await User.findOne({ email });
+
                     if (user && user._id) {
-                        USERS_CONNECTIONS[user._id] = ws; // Store the WebSocket connection by user ID
+                        USERS_CONNECTIONS[user._id] = ws;
 
                         ws.on('message', (message) => {
                             console.log(`Received message from user ${user._id}:`, message);
                         });
 
                         ws.on('close', () => {
-                            delete USERS_CONNECTIONS[user._id]; // Clean up when the connection is closed
+                            delete USERS_CONNECTIONS[user._id];
                         });
                     } else {
-                        ws.close();
+                        ws.close(4002, 'User not found'); // Close with a reason
                     }
 
-                    // Handle connection for partners
-                } else if (role === "partner") {
+                } else if (role === 'partner') {
                     const { username } = decoded;
                     const partner = await Partner.findOne({ username });
 
                     if (partner && partner._id) {
-                        PARTNERS_CONNECTIONS[partner._id] = ws; // Store the WebSocket connection by partner ID
+                        PARTNERS_CONNECTIONS[partner._id] = ws;
 
                         ws.on('message', (message) => {
                             console.log(`Received message from partner ${partner._id}:`, message);
                         });
 
                         ws.on('close', () => {
-                            delete PARTNERS_CONNECTIONS[partner._id]; // Clean up when the connection is closed
+                            delete PARTNERS_CONNECTIONS[partner._id];
                         });
                     } else {
-                        ws.close();
+                        ws.close(4003, 'Partner not found'); // Close with a reason
                     }
 
                 } else {
-                    ws.close(); // Close connection if role is neither 'user' nor 'partner'
+                    ws.close(4004, 'Invalid role'); // Close with a reason
                 }
             });
         } catch (error) {
             console.error("WebSocket connection error:", error);
-            ws.close();
+            ws.close(4005, 'Internal server error'); // Close with a reason
         }
     });
 };

@@ -4,67 +4,94 @@ const Partner = require("../../schemas/Partner");
 const cron = require("node-cron");
 const { PARTNERS_CONNECTIONS } = require("../socket/websokcetUtil");
 
-cron.schedule("* * * * *", async () => {
-  try {
-    const expirationTime = new Date(Date.now() - 5 * 60 * 1000); // 5 minutes ago
-    console.log("orderCron", { expirationTime });
+const EXPIRATION_TIME_MINS = 5;
 
-    // Find expired orders that are still pending
+const cancelExpiredOrders = async () => {
+  try {
+    const expirationTime = new Date(Date.now() - EXPIRATION_TIME_MINS * 60 * 1000);
+    console.log("orderCron", { expirationTime });
     const expiredOrders = await Order.find({
       status: "pending",
       "statusHistory.changedAt": { $lte: expirationTime }
     });
-    console.log({ expiredOrders });
 
-    if (expiredOrders.length > 0) {
-      // Process each expired order
-      for (const order of expiredOrders) {
-        // Add the cancelled order to the user's history
-        const user = await User.findById(order.user);
-        if (user) {
-          // Remove the cancelled order from user's active orders
-          user.orders = user.orders.filter(o => o.toString() !== order._id.toString());
+    console.log("Expired Orders:", expiredOrders);
 
-          // Add the cancelled order to user's history
-          if (!user.history) {
-            user.history = [];
-          }
-          user.history.push(order._id);
-
-          // Save the updated user document
-          await user.save();
-        }
-
-        // Add the cancelled order to the partner's history
-        const partner = await Partner.findOne({ shop: order.shop });
-        if (partner) {
-          // Remove the cancelled order from partner's active orders
-          partner.orders = partner.orders.filter(o => o.toString() !== order._id.toString());
-          // Add the cancelled order to partner's history
-          if (!partner.history) {
-            partner.history = [];
-          }
-          partner.history.push(order._id);
-          console.log("orderCron", { partner });
-          if (PARTNERS_CONNECTIONS[partner._id]) {
-            PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
-              type: 'ORDER_STATUS',
-              state: "CANCEL",
-            }));
-          }
-          await partner.save();
-        }
-
-        // Update the order status and statusHistory
-        await Order.findByIdAndUpdate(order._id, {
-          status: "cancelled",
-          $push: { statusHistory: { status: "cancelled", changedAt: new Date() } }
-        });
-      }
-
-      console.log(`${expiredOrders.length} orders cancelled and added to user and partner history.`);
+    if (expiredOrders.length === 0) {
+      console.log("No expired orders found.");
+      return;
     }
+
+    // Process each expired order
+    const userPromises = [];
+    const partnerPromises = [];
+
+    for (const order of expiredOrders) {
+      userPromises.push(handleUserHistory(order));
+      partnerPromises.push(handlePartnerHistory(order));
+      updateOrderStatus(order._id);
+    }
+
+    await Promise.all(userPromises);
+    await Promise.all(partnerPromises);
+
+    console.log(`${expiredOrders.length} orders cancelled and added to user and partner history.`);
   } catch (error) {
     console.error("Error checking expired orders:", error);
   }
-});
+};
+
+const handleUserHistory = async (order) => {
+  try {
+    const user = await User.findById(order.user);
+    if (!user) return;
+    user.orders = user.orders.filter(o => o.toString() !== order._id.toString());
+    if (!user.history) {
+      user.history = [];
+    }
+    user.history.push(order._id);
+    await user.save();
+  } catch (error) {
+    console.error(`Error updating user history for order ${order._id}:`, error);
+  }
+};
+
+const handlePartnerHistory = async (order) => {
+  try {
+    const partner = await Partner.findOne({ shop: order.shop });
+    if (!partner) return;
+
+    partner.orders = partner.orders.filter(o => o.toString() !== order._id.toString());
+
+    if (!partner.history) {
+      partner.history = [];
+    }
+    partner.history.push(order._id);
+
+    // Notify partner via WebSocket
+    if (PARTNERS_CONNECTIONS[partner._id]) {
+      PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
+        type: 'ORDER_STATUS',
+        state: "CANCEL",
+      }));
+    }
+
+    // Save the updated partner document
+    await partner.save();
+  } catch (error) {
+    console.error(`Error updating partner history for order ${order._id}:`, error);
+  }
+};
+
+const updateOrderStatus = async (orderId) => {
+  try {
+    await Order.findByIdAndUpdate(orderId, {
+      status: "cancelled",
+    });
+  } catch (error) {
+    console.error(`Error updating order status for order ${orderId}:`, error);
+  }
+};
+
+// Schedule the cron job
+cron.schedule("* * * * *", cancelExpiredOrders);

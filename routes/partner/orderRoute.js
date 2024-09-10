@@ -104,6 +104,15 @@ router.put("/:id", validateAccessToken, async (req, res) => {
             user.history.push(order._id);
         }
 
+
+        if(status === "cancelled"){
+            partner.orders = partner.orders.filter(orderId => orderId.toString() !== id);
+            partner.history.push(order._id);
+            user.orders = user.orders.filter(orderId => orderId.toString() !== id);
+            user.history.push(order._id);
+        }
+        
+        
         // Notify partner via WebSocket
         if (PARTNERS_CONNECTIONS[partner._id]) {
             PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({

@@ -76,6 +76,10 @@ const productSchema = new Schema({
   rayting: {
     type: Number,
     default: 5,
+  },
+  stock: {
+    type: Boolean,
+    default: true,
   }
 });
 productSchema.pre('save', function (next) {

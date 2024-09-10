@@ -85,7 +85,6 @@ router.post(
     }
   }
 );
-
 router.put(
   "/:id",
   validateAccessToken,
@@ -211,5 +210,11 @@ router.delete(
     }
   }
 );
+router.put("/stock/:id", validateAccessToken, async (req, res) => {
+  try {
+    
+  } catch (error) {
 
+  }
+})
 module.exports = router;

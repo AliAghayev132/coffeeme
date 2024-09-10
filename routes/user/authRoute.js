@@ -60,6 +60,8 @@ router.post("/send-otp", async (req, res) => {
 
     await Otp.create({ email, otp, phone });
     return res.status(200).json({
+      success: true,
+      createdAt: otp.createdAt,
       message: "OTP sent successfully",
     });
   } catch (error) {
@@ -236,7 +238,7 @@ router.post("/login", async (req, res) => {
   try {
     const { password, email } = req.body;
     const user = await User.findOne({ email }).lean();
-    
+
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
@@ -280,7 +282,7 @@ router.post("/refresh-token", async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = jwt.verify(token, process.env.REFRESH_SECRET_KEY);
-    const {email} = decoded;
+    const { email } = decoded;
     // Yeni access token oluştur
     const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
       expiresIn: "10m",
@@ -295,8 +297,8 @@ router.get("/user", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const user = await User.findOne({ email });
-    if(!user){
-      return res.status(404).json({success:false,message:"User Not found"});
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User Not found" });
     }
     console.log(user);
     user.password = undefined;
@@ -320,7 +322,7 @@ router.post(
   upload.single("photo"), // Use the field name 'photo'
   async (req, res) => {
     try {
-      const {email} = req.user; // JWT'den kullanıcı ID'sini alın
+      const { email } = req.user; // JWT'den kullanıcı ID'sini alın
       const imagePath = req.file.filename; // Dosya yolunu alın
 
       const user = await User.findOne({ email });
