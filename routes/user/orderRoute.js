@@ -14,10 +14,16 @@ router.get("/", validateAccessToken, async (req, res) => {
     const user = await User.findOne({ email })
       .populate({
         path: "orders",
-        populate: {
-          path: "items.product", // Populate product inside items
-          model: "Product", // Specify the model for product
-        },
+        populate: [
+          {
+            path: "items.product", // Populate product inside items
+            model: "Product",
+          },
+          {
+            path: "shop", // Populate the shop field
+            model: "Shop",
+          }
+        ]
       });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -105,18 +111,24 @@ router.post("/", validateAccessToken, async (req, res) => {
       status: "pending",
     });
 
+    if (user.balance < totalDiscountedPrice) {
+      return res.status(400).json({ success: false, message: "User balance is insufficient" });
+    }
+    user.balance -= totalDiscountedPrice;
     const savedOrder = await newOrder.save();
+    await user.save();
     await User.findOneAndUpdate({ email }, { $push: { orders: savedOrder._id } });
     await Partner.findOneAndUpdate(
       { shop: reqShop.id },
       { $push: { orders: savedOrder._id } }
     );
-    
+
     const partner = await Partner.findOne({ shop: reqShop.id });
+    console.log(PARTNERS_CONNECTIONS,partner);
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
       PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
         type: 'ORDER_STATUS',
-        state:"NEW",
+        state: "NEW",
         user: {
           firstname: user.firstname,
           secondname: user.secondname
@@ -177,6 +189,10 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
       const selectedSize = product.sizes.find(size => size.size === item.productSize);
       return sum + item.productCount * (selectedSize.discountedPrice || 0);
     }, 0);
+
+    if (!user.balance >= totalDiscountedPrice) {
+      return res.status(400).json({ success: false, message: "User balance is insufficient" });
+    }
 
     return res.status(201).json({ success: true, message: "Order price checkout", totalDiscountedPrice });
   } catch (error) {

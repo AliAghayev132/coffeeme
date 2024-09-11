@@ -52,6 +52,15 @@ const userSchema = new Schema(
     },
     orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Active orders
     history: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Canceled/Finished orders
+    streak: {
+      count: {
+        type: Number,
+        default: 0,
+      },
+      lastOrderDate: {
+        type: Date,
+      }
+    }
   },
   { versionKey: false }
 );

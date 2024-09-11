@@ -47,7 +47,7 @@ const orderSchema = new Schema({
     default: null,
   },
   preparingTime: {
-    type: Date,
+    type: Number,
   },
   status: {
     type: String,

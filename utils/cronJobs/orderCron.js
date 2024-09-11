@@ -50,6 +50,10 @@ const handleUserHistory = async (order) => {
       user.history = [];
     }
     user.history.push(order._id);
+    const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+    user.balance += refundAmount;  // Refund the amount to user's balance
+
+    // Save the updated user document
     await user.save();
   } catch (error) {
     console.error(`Error updating user history for order ${order._id}:`, error);

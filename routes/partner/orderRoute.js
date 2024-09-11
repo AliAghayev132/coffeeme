@@ -5,7 +5,7 @@ const Order = require("../../schemas/Order");
 const User = require("../../schemas/User");
 const validateAccessToken = require("../../middlewares/validateToken");
 const { PARTNERS_CONNECTIONS, USERS_CONNECTIONS } = require('../../utils/socket/websokcetUtil');
-
+const checkStreak = require("../../utils/user/checkStreak");
 
 router.get("/", validateAccessToken, async (req, res) => {
     try {
@@ -99,20 +99,36 @@ router.put("/:id", validateAccessToken, async (req, res) => {
             partner.orders = partner.orders.filter(orderId => orderId.toString() !== id);
             partner.history.push(order._id);
             partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
+            partner.balance += order.totalDiscountedPrice;
 
             user.orders = user.orders.filter(orderId => orderId.toString() !== id);
             user.history.push(order._id);
+            if (checkStreak(user.streak)) {
+                console.log("Steak work");
+                user.streak = {
+                    count: user.streak.count + 1,
+                    lastOrderDate: new Date()
+                };
+            } else {
+                console.log("Streak not work");
+                user.streak = {
+                    count: 1,
+                    lastOrderDate: new Date()
+                };
+            }
         }
 
-
-        if(status === "cancelled"){
+        if (status === "cancelled") {
             partner.orders = partner.orders.filter(orderId => orderId.toString() !== id);
             partner.history.push(order._id);
+
             user.orders = user.orders.filter(orderId => orderId.toString() !== id);
             user.history.push(order._id);
+
+            const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+            user.balance += refundAmount;
         }
-        
-        
+
         // Notify partner via WebSocket
         if (PARTNERS_CONNECTIONS[partner._id]) {
             PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({

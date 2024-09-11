@@ -20,7 +20,6 @@ const handleWebSocketConnection = (wss) => {
                 ws.close(4000, 'Token or role missing'); // Close with a reason
                 return;
             }
-
             jwt.verify(token, process.env.ACCESS_SECRET_KEY, async (err, decoded) => {
                 if (err) {
                     ws.close(4001, 'Invalid token'); // Close with a reason
@@ -30,10 +29,8 @@ const handleWebSocketConnection = (wss) => {
                 if (role === 'user') {
                     const { email } = decoded;
                     const user = await User.findOne({ email });
-
                     if (user && user._id) {
                         USERS_CONNECTIONS[user._id] = ws;
-
                         ws.on('message', (message) => {
                             console.log(`Received message from user ${user._id}:`, message);
                         });
