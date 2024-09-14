@@ -10,6 +10,10 @@ const subscriberSchema = new Schema({
         type: String,
         require: true,
         unique: true,
+    },
+    date: {
+        type: Date,
+        default: Date.now(),
     }
 });
 

@@ -17,21 +17,22 @@ const userSchema = new Schema(
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
     phone: {
       type: String,
-      require: true,
+      required: true,
       unique: true,
     },
     password: {
       type: String,
-      require: true,
+      required: true,
     },
     birthdate: {
       type: Date,
-      require: true,
+      required: true,
+      default: Date.now()
     },
     gender: {
       type: String,
@@ -60,7 +61,24 @@ const userSchema = new Schema(
       lastOrderDate: {
         type: Date,
       }
-    }
+    },
+    fingerTips: {
+      type: {
+        coffees: {
+          type: [String],
+          default: [],
+        },
+        desserts: {
+          type: [String],
+          default: [],
+        },
+        coffeeshops: {
+          type: [String],
+          default: [],
+        },
+      },
+      default: null, // Default to null
+    },
   },
   { versionKey: false }
 );

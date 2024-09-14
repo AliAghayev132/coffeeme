@@ -15,6 +15,7 @@ const {
 } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
+const { log } = require("console");
 
 
 const storage = (folderName) =>
@@ -164,8 +165,8 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     let otp = await otpGenerator();
-    await Otp.create({ email, otp, phone: existingUser.phone });
-    return res.status(200).json({ sucess: true, message: "Otp sent successfully" });
+    let newOtp = await Otp.create({ email, otp, phone: existingUser.phone });
+    return res.status(200).json({ sucess: true, message: "Otp sent successfully", createdAt: newOtp.createdAt });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ message: "Internal server error" });
@@ -195,14 +196,18 @@ router.post("/forgot-password-otp-confirm", async (req, res) => {
 router.post("/forgot-password-confirm", async (req, res) => {
   try {
     const { otp, email, password } = req.body;
+
     if (!validatePassword(password)) {
       return res.status(400).json({ sucess: false, message: "Password is not valid" });
     }
+
+
 
     const [existingUser, existingOtp] = await Promise.all([
       User.findOne({ email }),
       Otp.findOne({ otp }),
     ]);
+
 
     if (!existingUser) {
       return res.status(400).json({ sucess: false, message: "User not found" });
@@ -211,6 +216,7 @@ router.post("/forgot-password-confirm", async (req, res) => {
     if (!existingOtp) {
       return res.status(400).json({ sucess: false, message: "Invalid OTP" });
     }
+
 
     if (existingOtp.email !== email) {
       return res.status(400).json({ sucess: false, message: "Email is different" });
@@ -224,6 +230,7 @@ router.post("/forgot-password-confirm", async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     existingUser.password = hashedPassword;
+
 
     await existingUser.save();
     await Otp.deleteOne({ otp });
@@ -275,6 +282,32 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Internal server error" });
   }
 });
+router.post("/update-fingertips", validateAccessToken, async (req, res) => {
+  const { fingerTips } = req.body;
+  const { email } = req.user;
+  // Validate request body
+  if (!fingerTips) {
+    return res.status(400).json({ success: false, message: "FingerTips are required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    if (!user.fingerTips) {
+      user.fingerTips = fingerTips;
+      await user.save();
+      return res.status(200).json({ success: true, message: "FingerTips updated successfully", fingerTips: user.fingerTips });
+    } else {
+      return res.status(400).json({ success: false, message: "FingerTips already set" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server error" });
+  }
+});
+
 // Refresh Access Token
 router.post("/refresh-token", async (req, res) => {
   try {
@@ -299,7 +332,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "User Not found" });
     }
-    if (!checkStreak({streak:user.streak})) {
+    if (!checkStreak({ streak: user.streak })) {
       user.streak = {
         count: 0,
       }
