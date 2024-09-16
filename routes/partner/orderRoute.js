@@ -103,6 +103,9 @@ router.put("/:id", validateAccessToken, async (req, res) => {
 
             user.orders = user.orders.filter(orderId => orderId.toString() !== id);
             user.history.push(order._id);
+            if (user.loyalty < 10) {
+                ++user.loyalty;
+            }
             if (checkStreak(user.streak)) {
                 console.log("Steak work");
                 user.streak = {

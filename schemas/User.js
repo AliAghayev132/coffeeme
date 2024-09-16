@@ -51,6 +51,10 @@ const userSchema = new Schema(
       type: Number,
       default: 1000,
     },
+    loyalty: {
+      type: Number,
+      default: 0,
+    },
     orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Active orders
     history: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Canceled/Finished orders
     streak: {

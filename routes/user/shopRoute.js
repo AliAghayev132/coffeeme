@@ -30,6 +30,9 @@ const upload = multer({ storage: storage });
 //?        Users
 //? ********************
 
+router.get("/home", validateAccessToken, async (req, res) => {
+
+})
 router.get("/nearest", validateAccessToken, async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
@@ -48,14 +51,13 @@ router.get("/nearest", validateAccessToken, async (req, res) => {
             type: "Point",
             coordinates: [longitude, latitude],
           },
-          distanceField: "distance",
-          maxDistance: 50000,
-          spherical: true,
+          distanceField: "distance", // A valid field name to store the distance
+          spherical: true, // This calculates the distance in meters using a spherical model
+          minDistance: 0, // Or just omit this line to have unlimited distance
         },
       },
       { $limit: 5 },
     ]);
-
     // Yürüyüş sürelerini hesapla
     const resultsWithTimes = shops.map((shop) => {
       const walkingTimes = calculateWalkingTimes(
@@ -67,7 +69,6 @@ router.get("/nearest", validateAccessToken, async (req, res) => {
 
       return {
         ...shop,
-        walkingTimes,
       };
     });
 
