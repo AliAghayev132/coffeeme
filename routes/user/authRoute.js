@@ -15,7 +15,6 @@ const {
 } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
-const { log } = require("console");
 
 
 const storage = (folderName) =>
@@ -254,7 +253,6 @@ router.post("/login", async (req, res) => {
     }
     delete user.password;
     delete user.__v;
-
     const accessToken = jwt.sign(
       {
         email,
@@ -283,14 +281,13 @@ router.post("/login", async (req, res) => {
   }
 });
 router.post("/update-fingertips", validateAccessToken, async (req, res) => {
-  const { fingerTips } = req.body;
-  const { email } = req.user;
-  // Validate request body
-  if (!fingerTips) {
-    return res.status(400).json({ success: false, message: "FingerTips are required" });
-  }
-
   try {
+    const { fingerTips } = req.body;
+    const { email } = req.user;
+    if (!fingerTips) {
+      return res.status(400).json({ success: false, message: "FingerTips are required" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
