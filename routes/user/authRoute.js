@@ -274,7 +274,7 @@ router.post("/login", async (req, res) => {
 
     USERS_CONNECTIONS[user._id] = null;
 
-    return res.status(200).json({ refreshToken, accessToken });
+    return res.status(200).json({ refreshToken, accessToken,user });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: "Internal server error" });
