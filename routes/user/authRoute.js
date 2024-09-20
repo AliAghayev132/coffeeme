@@ -259,7 +259,7 @@ router.post("/login", async (req, res) => {
       },
       process.env.ACCESS_SECRET_KEY,
       {
-        expiresIn: "10m",
+        expiresIn: "1m",
       }
     );
     const refreshToken = jwt.sign(
@@ -314,7 +314,7 @@ router.post("/refresh-token", async (req, res) => {
     const { email } = decoded;
     // Yeni access token oluştur
     const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
-      expiresIn: "10m",
+      expiresIn: "1m",
     });
     return res.status(200).json({ accessToken: newToken });
   } catch (error) {
