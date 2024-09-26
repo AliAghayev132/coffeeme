@@ -7,24 +7,26 @@ const Shop = require("../../schemas/Shop");
 const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
+
+
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
-    const user = await User.findOne({ email })
-      .populate({
-        path: "orders",
-        populate: [
-          {
-            path: "items.product", // Populate product inside items
-            model: "Product",
-          },
-          {
-            path: "shop", // Populate the shop field
-            model: "Shop",
-          }
-        ]
-      });
+    const user = await User.findOne({ email }).populate({
+      path: "orders",
+      populate: [
+        {
+          path: "items.product", // Populate product inside items
+          model: "Product",
+        },
+        {
+          path: "shop", // Populate the shop field
+          model: "Shop",
+        },
+      ],
+    });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -50,7 +52,9 @@ router.post("/", validateAccessToken, async (req, res) => {
     }
 
     if (user.orders.length >= 3) {
-      return res.status(400).json({ message: "You have reached the order limit" });
+      return res
+        .status(400)
+        .json({ message: "You have reached the order limit" });
     }
 
     const shop = await Shop.findById(reqShop.id);
@@ -58,50 +62,71 @@ router.post("/", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
-    const productIds = orderedItems.map(item => item.productId);
+    const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
-
-    const validItems = orderedItems.every(item => {
-      const product = products.find(p => p._id.toString() === item.productId.toString());
+    const validItems = orderedItems.every((item) => {
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
       if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
         return false;
       }
 
-      const selectedSize = product.sizes.find(size => size.size === item.productSize);
+      const selectedSize = product.sizes.find(
+        (size) => size.size === item.productSize
+      );
       return selectedSize !== undefined;
     });
 
     if (!validItems) {
       return res.status(400).json({
-        message: "One or more items are invalid, or the selected size does not exist for the product",
+        message:
+          "One or more items are invalid, or the selected size does not exist for the product",
       });
     }
 
+    // Toplam fiyat hesaplaması (iki ondalık basamağa yuvarlıyoruz)
     const totalPrice = orderedItems.reduce((sum, item) => {
-      const product = products.find(p => p._id.toString() === item.productId.toString());
-      const selectedSize = product.sizes.find(size => size.size === item.productSize);
-      return sum + item.productCount * (selectedSize.price || 0);
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
+      const selectedSize = product.sizes.find(
+        (size) => size.size === item.productSize
+      );
+      return roundToTwoDecimals(
+        sum + item.productCount * (selectedSize.price || 0)
+      );
     }, 0);
 
     const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
-      const product = products.find(p => p._id.toString() === item.productId.toString());
-      const selectedSize = product.sizes.find(size => size.size === item.productSize);
-      return sum + item.productCount * (selectedSize.discountedPrice || 0);
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
+      const selectedSize = product.sizes.find(
+        (size) => size.size === item.productSize
+      );
+      return roundToTwoDecimals(
+        sum + item.productCount * (selectedSize.discountedPrice || 0)
+      );
     }, 0);
 
     const newOrder = new Order({
       user: user._id,
-      items: orderedItems.map(item => {
-        const product = products.find(p => p._id.toString() === item.productId.toString());
-        const selectedSize = product.sizes.find(size => size.size === item.productSize);
+      items: orderedItems.map((item) => {
+        const product = products.find(
+          (p) => p._id.toString() === item.productId.toString()
+        );
+        const selectedSize = product.sizes.find(
+          (size) => size.size === item.productSize
+        );
         return {
           product: item.productId,
           quantity: item.productCount,
-          price: selectedSize.price,
-          discount: selectedSize.discount,
-          discountedPrice: selectedSize.discountedPrice,
-          size: selectedSize.size
+          price: roundToTwoDecimals(selectedSize.price),
+          discount: roundToTwoDecimals(selectedSize.discount),
+          discountedPrice: roundToTwoDecimals(selectedSize.discountedPrice),
+          size: selectedSize.size,
         };
       }),
       shop: reqShop.id,
@@ -112,28 +137,35 @@ router.post("/", validateAccessToken, async (req, res) => {
     });
 
     if (user.balance < totalDiscountedPrice) {
-      return res.status(400).json({ success: false, message: "User balance is insufficient" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User balance is insufficient" });
     }
     user.balance -= totalDiscountedPrice;
     const savedOrder = await newOrder.save();
     await user.save();
-    await User.findOneAndUpdate({ email }, { $push: { orders: savedOrder._id } });
+    await User.findOneAndUpdate(
+      { email },
+      { $push: { orders: savedOrder._id } }
+    );
     await Partner.findOneAndUpdate(
       { shop: reqShop.id },
       { $push: { orders: savedOrder._id } }
     );
 
     const partner = await Partner.findOne({ shop: reqShop.id });
-    console.log(PARTNERS_CONNECTIONS,partner);
+    console.log(PARTNERS_CONNECTIONS, partner);
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
-      PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
-        type: 'ORDER_STATUS',
-        state: "NEW",
-        user: {
-          firstname: user.firstname,
-          secondname: user.secondname
-        },
-      }));
+      PARTNERS_CONNECTIONS[partner._id].send(
+        JSON.stringify({
+          type: "ORDER_STATUS",
+          state: "NEW",
+          user: {
+            firstname: user.firstname,
+            secondname: user.secondname,
+          },
+        })
+      );
     }
     return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
@@ -156,7 +188,9 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
     }
 
     if (user.orders.length >= 3) {
-      return res.status(400).json({ message: "You have reached the order limit" });
+      return res
+        .status(400)
+        .json({ message: "You have reached the order limit" });
     }
 
     const shop = await Shop.findById(reqShop.id);
@@ -164,41 +198,57 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
-    const productIds = orderedItems.map(item => item.productId);
+    const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
-
-    const validItems = orderedItems.every(item => {
-      const product = products.find(p => p._id.toString() === item.productId.toString());
+    const validItems = orderedItems.every((item) => {
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
       if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
         return false;
       }
 
-      const selectedSize = product.sizes.find(size => size.size === item.productSize);
+      const selectedSize = product.sizes.find(
+        (size) => size.size === item.productSize
+      );
       return selectedSize !== undefined;
     });
 
     if (!validItems) {
       return res.status(400).json({
-        message: "One or more items are invalid, or the selected size does not exist for the product",
+        message:
+          "One or more items are invalid, or the selected size does not exist for the product",
       });
     }
 
     const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
-      const product = products.find(p => p._id.toString() === item.productId.toString());
-      const selectedSize = product.sizes.find(size => size.size === item.productSize);
-      return sum + item.productCount * (selectedSize.discountedPrice || 0);
+      const product = products.find(
+        (p) => p._id.toString() === item.productId.toString()
+      );
+      const selectedSize = product.sizes.find(
+        (size) => size.size === item.productSize
+      );
+      return roundToTwoDecimals(
+        sum + item.productCount * (selectedSize.discountedPrice || 0)
+      );
     }, 0);
 
-    if (!user.balance >= totalDiscountedPrice) {
-      return res.status(400).json({ success: false, message: "User balance is insufficient" });
+    if (user.balance < totalDiscountedPrice) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User balance is insufficient" });
     }
 
-    return res.status(201).json({ success: true, message: "Order price checkout", totalDiscountedPrice });
+    return res.status(201).json({
+      success: true,
+      message: "Order price checkout",
+      totalDiscountedPrice,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error creating order", error });
+    return res.status(500).json({ message: "Error during checkout", error });
   }
-})
+});
 
 module.exports = router;

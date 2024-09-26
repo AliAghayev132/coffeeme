@@ -17,7 +17,7 @@ const sizeSchema = new Schema({
   discountedPrice: {
     type: Number,
     required: false,
-  }
+  },
 });
 
 const productSchema = new Schema({
@@ -35,7 +35,7 @@ const productSchema = new Schema({
     type: String,
     required: true,
     enum: ["none", "takeaway", "cup", "all"],
-    default: "none"
+    default: "none",
   },
   shop: {
     id: {
@@ -80,17 +80,21 @@ const productSchema = new Schema({
   stock: {
     type: Boolean,
     default: true,
-  }
+  },
 });
-productSchema.pre('save', function (next) {
-  this.sizes = this.sizes.map(size => {
-    console.log("Evvel", size);
+productSchema.pre("save", function (next) {
+  this.sizes = this.sizes.map((size) => {
     if (size.discount && size.discount > 0) {
+      // İndirimli fiyatı hesapla
       size.discountedPrice = size.price - (size.price * size.discount) / 100;
     } else {
       size.discountedPrice = size.price;
     }
-    console.log("Sonra", size);
+
+    // Özel yuvarlama fonksiyonunu kullan
+    size.discountedPrice = customRound(size.discountedPrice);
+    size.price = customRound(size.price); // Ana fiyatı da yuvarla
+
     return size;
   });
 
@@ -99,3 +103,15 @@ productSchema.pre('save', function (next) {
 
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;
+
+function customRound(value) {
+  const rounded = Math.round(value * 100) / 100;
+
+  const decimalPart = rounded - Math.floor(rounded); // Ondalık kısmı al
+
+  if (decimalPart >= 0.06) {
+    return Math.ceil(rounded * 100) / 100;
+  } else {
+    return Math.floor(rounded * 100) / 100;
+  }
+}

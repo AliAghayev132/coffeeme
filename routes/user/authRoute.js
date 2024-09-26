@@ -335,7 +335,6 @@ router.get("/user", validateAccessToken, async (req, res) => {
       }
     }
 
-
     user.password = undefined;
     user.__v = undefined;
 

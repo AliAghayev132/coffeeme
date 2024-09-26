@@ -32,7 +32,7 @@ const userSchema = new Schema(
     birthdate: {
       type: Date,
       required: true,
-      default: Date.now()
+      default: Date.now(),
     },
     gender: {
       type: String,
@@ -55,6 +55,11 @@ const userSchema = new Schema(
       type: Number,
       default: 0,
     },
+    favorites: {
+      shops: [{ type: Schema.Types.ObjectId, ref: "Shop" }],
+      products: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    },
+    follows: [{ type: Schema.Types.ObjectId, ref: "Shop" }],
     orders: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Active orders
     history: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Canceled/Finished orders
     streak: {
@@ -64,7 +69,7 @@ const userSchema = new Schema(
       },
       lastOrderDate: {
         type: Date,
-      }
+      },
     },
     fingerTips: {
       type: {

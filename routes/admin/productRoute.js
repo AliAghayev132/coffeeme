@@ -174,7 +174,6 @@ router.delete("/:id", validateAccessToken, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const products = await Product.find({});

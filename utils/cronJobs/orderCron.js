@@ -2,17 +2,22 @@ const Order = require("../../schemas/Order");
 const User = require("../../schemas/User");
 const Partner = require("../../schemas/Partner");
 const cron = require("node-cron");
-const { PARTNERS_CONNECTIONS } = require("../socket/websokcetUtil");
+const {
+  PARTNERS_CONNECTIONS,
+  USERS_CONNECTIONS, // Import the USER_CONNECTIONS
+} = require("../socket/websokcetUtil");
 
-const EXPIRATION_TIME_MINS = 5;
+const EXPIRATION_TIME_MINS = 1;
 
 const cancelExpiredOrders = async () => {
   try {
-    const expirationTime = new Date(Date.now() - EXPIRATION_TIME_MINS * 60 * 1000);
+    const expirationTime = new Date(
+      Date.now() - EXPIRATION_TIME_MINS * 60 * 1000
+    );
     console.log("orderCron", { expirationTime });
     const expiredOrders = await Order.find({
       status: "pending",
-      "statusHistory.changedAt": { $lte: expirationTime }
+      "statusHistory.changedAt": { $lte: expirationTime },
     });
 
     console.log("Expired Orders:", expiredOrders);
@@ -35,7 +40,9 @@ const cancelExpiredOrders = async () => {
     await Promise.all(userPromises);
     await Promise.all(partnerPromises);
 
-    console.log(`${expiredOrders.length} orders cancelled and added to user and partner history.`);
+    console.log(
+      `${expiredOrders.length} orders cancelled and added to user and partner history.`
+    );
   } catch (error) {
     console.error("Error checking expired orders:", error);
   }
@@ -45,13 +52,27 @@ const handleUserHistory = async (order) => {
   try {
     const user = await User.findById(order.user);
     if (!user) return;
-    user.orders = user.orders.filter(o => o.toString() !== order._id.toString());
+    user.orders = user.orders.filter(
+      (o) => o.toString() !== order._id.toString()
+    );
     if (!user.history) {
       user.history = [];
     }
     user.history.push(order._id);
     const refundAmount = order.totalDiscountedPrice || order.totalPrice;
-    user.balance += refundAmount;  // Refund the amount to user's balance
+    user.balance += refundAmount; // Refund the amount to user's balance
+
+    // Notify user via WebSocket
+    if (USERS_CONNECTIONS[user._id]) {
+      console.log("Here worked");
+      
+      USERS_CONNECTIONS[user._id].send(
+        JSON.stringify({
+          type: "ORDER_STATUS",
+          state: "CANCEL",
+        })
+      );
+    }
 
     // Save the updated user document
     await user.save();
@@ -65,7 +86,9 @@ const handlePartnerHistory = async (order) => {
     const partner = await Partner.findOne({ shop: order.shop });
     if (!partner) return;
 
-    partner.orders = partner.orders.filter(o => o.toString() !== order._id.toString());
+    partner.orders = partner.orders.filter(
+      (o) => o.toString() !== order._id.toString()
+    );
 
     if (!partner.history) {
       partner.history = [];
@@ -74,16 +97,21 @@ const handlePartnerHistory = async (order) => {
 
     // Notify partner via WebSocket
     if (PARTNERS_CONNECTIONS[partner._id]) {
-      PARTNERS_CONNECTIONS[partner._id].send(JSON.stringify({
-        type: 'ORDER_STATUS',
-        state: "CANCEL",
-      }));
+      PARTNERS_CONNECTIONS[partner._id].send(
+        JSON.stringify({
+          type: "ORDER_STATUS",
+          state: "CANCEL",
+        })
+      );
     }
 
     // Save the updated partner document
     await partner.save();
   } catch (error) {
-    console.error(`Error updating partner history for order ${order._id}:`, error);
+    console.error(
+      `Error updating partner history for order ${order._id}:`,
+      error
+    );
   }
 };
 

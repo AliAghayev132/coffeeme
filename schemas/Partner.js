@@ -46,7 +46,8 @@ const PartnerSchema = new Schema({
   balance: {
     type: Number,
     default: 0,
-  }
+  },
+  followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
