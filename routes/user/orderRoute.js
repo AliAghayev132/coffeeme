@@ -154,7 +154,6 @@ router.post("/", validateAccessToken, async (req, res) => {
     );
 
     const partner = await Partner.findOne({ shop: reqShop.id });
-    console.log(PARTNERS_CONNECTIONS, partner);
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
       PARTNERS_CONNECTIONS[partner._id].send(
         JSON.stringify({
