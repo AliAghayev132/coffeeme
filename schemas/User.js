@@ -88,6 +88,20 @@ const userSchema = new Schema(
       },
       default: null, // Default to null
     },
+    recentSearched: [
+      {
+        item: {
+          type: Schema.Types.ObjectId,
+          required: true,
+          refPath: "recentSearched.itemType",
+        },
+        itemType: {
+          type: String,
+          required: true,
+          enum: ["Shop", "Product"], // Reference to either Shop or Product
+        },
+      },
+    ],
   },
   { versionKey: false }
 );

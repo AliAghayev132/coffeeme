@@ -39,6 +39,7 @@ const shopSchema = new Schema({
     required: false,
     default: 5,
   },
+  
 });
 
 shopSchema.pre("save", async function (next) {
