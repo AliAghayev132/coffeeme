@@ -19,7 +19,7 @@ const statusHistorySchema = new Schema({
   changedAt: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 const orderSchema = new Schema({
   user: {
@@ -57,11 +57,16 @@ const orderSchema = new Schema({
   rayting: {
     type: Number,
     default: 5,
-  }
+  },
+  category: {
+    type: String,
+    enum: ["standard", "premium", "streakPremium"],
+    default: "standard",
+  },
 });
-orderSchema.pre('save', function (next) {
+orderSchema.pre("save", function (next) {
   const order = this;
-  if (order.isModified('status')) {
+  if (order.isModified("status")) {
     order.statusHistory.push({
       status: order.status,
       changedAt: new Date(),

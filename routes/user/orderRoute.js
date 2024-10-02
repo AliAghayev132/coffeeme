@@ -9,8 +9,6 @@ const validateAccessToken = require("../../middlewares/validateToken");
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
-
-
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
@@ -50,6 +48,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const { category } = user;
 
     if (user.orders.length >= 3) {
       return res
@@ -107,7 +106,11 @@ router.post("/", validateAccessToken, async (req, res) => {
         (size) => size.size === item.productSize
       );
       return roundToTwoDecimals(
-        sum + item.productCount * (selectedSize.discountedPrice || 0)
+        sum +
+          item.productCount *
+            (category !== "standard"
+              ? selectedSize.discountedPrice
+              : selectedSize.price || 0)
       );
     }, 0);
 
@@ -121,6 +124,7 @@ router.post("/", validateAccessToken, async (req, res) => {
           (size) => size.size === item.productSize
         );
         return {
+          category: user.category,
           product: item.productId,
           quantity: item.productCount,
           price: roundToTwoDecimals(selectedSize.price),
@@ -185,6 +189,7 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const { category } = user;
 
     if (user.orders.length >= 3) {
       return res
@@ -229,7 +234,11 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
         (size) => size.size === item.productSize
       );
       return roundToTwoDecimals(
-        sum + item.productCount * (selectedSize.discountedPrice || 0)
+        sum +
+          item.productCount *
+            (category !== "standard"
+              ? selectedSize.discountedPrice
+              : selectedSize.price || 0)
       );
     }, 0);
 
