@@ -7,25 +7,20 @@ const {
   USERS_CONNECTIONS, // Import the USER_CONNECTIONS
 } = require("../socket/websokcetUtil");
 
-const EXPIRATION_TIME_MINS = 5;
+const EXPIRATION_TIME_MINS = 1;
 
 const cancelExpiredOrders = async () => {
   try {
     const expirationTime = new Date(
       Date.now() - EXPIRATION_TIME_MINS * 60 * 1000
     );
-    console.log("orderCron", { expirationTime });
     const expiredOrders = await Order.find({
       status: "pending",
       "statusHistory.changedAt": { $lte: expirationTime },
     });
 
-    console.log("Expired Orders:", expiredOrders);
-
-    if (expiredOrders.length === 0) {
-      console.log("No expired orders found.");
-      return;
-    }
+    console.log({ expiredOrders });
+    if (expiredOrders.length) console.log("Expired Orders:", expiredOrders);
 
     // Process each expired order
     const userPromises = [];
@@ -39,10 +34,6 @@ const cancelExpiredOrders = async () => {
 
     await Promise.all(userPromises);
     await Promise.all(partnerPromises);
-
-    console.log(
-      `${expiredOrders.length} orders cancelled and added to user and partner history.`
-    );
   } catch (error) {
     console.error("Error checking expired orders:", error);
   }
@@ -59,13 +50,18 @@ const handleUserHistory = async (order) => {
       user.history = [];
     }
     user.history.push(order._id);
-    const refundAmount = order.totalDiscountedPrice || order.totalPrice;
-    user.balance += refundAmount; // Refund the amount to user's balance
+
+    if (order.loyalty) {
+      user.loyalty = 10;
+    } else {
+      const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+      user.balance += refundAmount; // Refund the amount to user's balance
+    }
 
     // Notify user via WebSocket
     if (USERS_CONNECTIONS[user._id]) {
       console.log("Here worked");
-      
+
       USERS_CONNECTIONS[user._id].send(
         JSON.stringify({
           type: "ORDER_STATUS",
@@ -117,9 +113,10 @@ const handlePartnerHistory = async (order) => {
 
 const updateOrderStatus = async (orderId) => {
   try {
-    await Order.findByIdAndUpdate(orderId, {
-      status: "cancelled",
-    });
+    const order = await Order.findById(orderId);
+    order.status = "cancelled";
+    await order.save();
+    console.log(order);
   } catch (error) {
     console.error(`Error updating order status for order ${orderId}:`, error);
   }

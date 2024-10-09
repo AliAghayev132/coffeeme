@@ -39,7 +39,10 @@ const shopSchema = new Schema({
     required: false,
     default: 5,
   },
-  
+  ratingCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 shopSchema.pre("save", async function (next) {

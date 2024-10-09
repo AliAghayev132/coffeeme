@@ -116,9 +116,9 @@ router.post("/verify-otp", async (req, res) => {
 
     await newUser.save();
     await Otp.deleteOne({ email });
-    res
+    return res
       .status(201)
-      .json({ sucess: true, message: "User registered successfully" });
+      .json({ success: true, message: "User registered successfully" });
   } catch (error) {
     console.error(error);
     return res

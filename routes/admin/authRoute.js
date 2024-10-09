@@ -7,40 +7,42 @@ const jwt = require("jsonwebtoken");
 router.post("/", async (req, res) => {
   try {
     const { username, password } = req.body;
+    
+    // Ensure all fields are present
     if (!username || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const admin = await Admin.findOne({ username });
-    if (!admin) return res.status(404).json({ message: "Admin not found" });
 
-    const passwordMatch = bcrypt.compare(password, admin.password);
-    if (!passwordMatch) {
-      return res.status(400).json({ error: "Invalid credentials" });
+    // Find the admin user
+    const admin = await Admin.findOne({ username });
+    if (!admin) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    // Check password
+    const passwordMatch = await bcrypt.compare(password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Generate tokens
     const { email } = admin;
     const accessToken = jwt.sign(
-      {
-        email,
-        _id: admin._id,
-      },
+      { email, _id: admin._id },
       process.env.ACCESS_SECRET_KEY,
-      {
-        expiresIn: "10m",
-      }
+      { expiresIn: "10m" }
     );
     const refreshToken = jwt.sign(
-      {
-        email,
-        _id: admin._id,
-      },
+      { email, _id: admin._id },
       process.env.REFRESH_SECRET_KEY,
-      {
-        expiresIn: 24 * 60 * 60 * 15,
-      }
+      { expiresIn: 24 * 60 * 60 * 15 }  // 15 days
     );
+
+    // Respond with tokens
     return res.status(200).json({ refreshToken, accessToken });
+    
   } catch (error) {
-    console.error(error);
+    console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });

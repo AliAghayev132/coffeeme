@@ -73,9 +73,14 @@ const productSchema = new Schema({
     enum: ["STANDARD_DISCOUNT", "SPECIAL_DISCOUNT"],
     required: true,
   },
-  rayting: {
+  rating: {
     type: Number,
+    required: false,
     default: 5,
+  },
+  ratingCount: {
+    type: Number,
+    default: 0,
   },
   stock: {
     type: Boolean,

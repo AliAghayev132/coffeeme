@@ -21,7 +21,7 @@ const handleWebSocketConnection = (wss) => {
         return;
       }
       jwt.verify(token, process.env.ACCESS_SECRET_KEY, async (err, decoded) => {
-        console.log(err);
+  
         
         if (err) {
           ws.close(4001, "Invalid token"); // Close with a reason

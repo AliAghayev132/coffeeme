@@ -54,14 +54,24 @@ const orderSchema = new Schema({
     enum: ["pending", "preparing", "finished", "delivered", "cancelled"],
   },
   statusHistory: [statusHistorySchema],
-  rayting: {
-    type: Number,
-    default: 5,
+  rating: {
+    product: {
+      type: Number,
+      default: null,
+    },
+    shop: {
+      type: Number,
+      default: null,
+    },
   },
   category: {
     type: String,
     enum: ["standard", "premium", "streakPremium"],
     default: "standard",
+  },
+  loyalty: {
+    type: Boolean,
+    default: false,
   },
 });
 orderSchema.pre("save", function (next) {
