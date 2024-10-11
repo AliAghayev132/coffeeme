@@ -48,9 +48,8 @@ router.get("/history/:id", validateAccessToken, async (req, res) => {
     const { email } = req.user; // Kullanıcının e-posta adresini al
     const { id } = req.params; // URL parametresinden id'yi al
 
-    console.log({id});
-    
-    
+    console.log({ id });
+
     // Kullanıcıyı e-posta adresi ile bul ve 'history' alanını doldur
     const user = await User.findOne({ email }).populate({
       path: "history",
@@ -84,8 +83,6 @@ router.get("/history/:id", validateAccessToken, async (req, res) => {
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
-
-    
 
     return res.status(200).json({
       success: true,
@@ -134,6 +131,8 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     const { email } = req.user; // JWT token'dan email alınıyor
     const { productRating, shopRating } = req.body; // Rating verileri body'den alınıyor
     const { id } = req.params; // Sipariş ID'si URL parametrelerinden alınıyor
+
+    console.log(productRating, shopRating, id);
 
     // Kullanıcıyı email ile bul
     const user = await User.findOne({ email });

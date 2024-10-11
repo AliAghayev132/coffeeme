@@ -119,7 +119,9 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         // streakPremium
 
         if (
-          (user.loyalty !== 0 && !order.loyalty && user.category === "streakPremium") ||
+          (user.loyalty !== 0 &&
+            !order.loyalty &&
+            user.category === "streakPremium") ||
           user.category === "standard"
         )
           if (user.loyalty < 10) {
@@ -170,9 +172,8 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       USERS_CONNECTIONS[user._id].send(
         JSON.stringify({
           type: "ORDER_STATUS",
-          state: delivered ? delivered : "UPDATE",
+          state: status,
           orderId: order._id,
-          newStatus: status,
         })
       );
     }

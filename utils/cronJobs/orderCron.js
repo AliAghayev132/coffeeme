@@ -17,7 +17,15 @@ const cancelExpiredOrders = async () => {
     const expiredOrders = await Order.find({
       status: "pending",
       "statusHistory.changedAt": { $lte: expirationTime },
-    });
+    })
+      .populate({
+        path: "shop",
+        select: "name",
+      })
+      .populate({
+        path: "items.product", // items dizisindeki her bir ürün
+        select: "name", // Sadece gerekli alanları seçiyoruz
+      });
 
     console.log({ expiredOrders });
     if (expiredOrders.length) console.log("Expired Orders:", expiredOrders);
@@ -42,6 +50,8 @@ const cancelExpiredOrders = async () => {
 const handleUserHistory = async (order) => {
   try {
     const user = await User.findById(order.user);
+    console.log({ order });
+    console.log({ items: order.items });
     if (!user) return;
     user.orders = user.orders.filter(
       (o) => o.toString() !== order._id.toString()
@@ -55,17 +65,20 @@ const handleUserHistory = async (order) => {
       user.loyalty = 10;
     } else {
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
-      user.balance += refundAmount; // Refund the amount to user's balance
+      user.balance += refundAmount;
     }
 
     // Notify user via WebSocket
     if (USERS_CONNECTIONS[user._id]) {
-      console.log("Here worked");
-
       USERS_CONNECTIONS[user._id].send(
         JSON.stringify({
+          orderId: order._id,
           type: "ORDER_STATUS",
           state: "CANCEL",
+          data: {
+            shop: order.shop.name,
+            products: order.items.product,
+          },
         })
       );
     }
