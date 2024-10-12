@@ -74,7 +74,7 @@ const handleUserHistory = async (order) => {
         JSON.stringify({
           orderId: order._id,
           type: "ORDER_STATUS",
-          state: "CANCEL",
+          state: "cancelled",
           data: {
             shop: order.shop.name,
             products: order.items.product,
@@ -109,7 +109,7 @@ const handlePartnerHistory = async (order) => {
       PARTNERS_CONNECTIONS[partner._id].send(
         JSON.stringify({
           type: "ORDER_STATUS",
-          state: "CANCEL",
+          state: "cancelled",
         })
       );
     }
