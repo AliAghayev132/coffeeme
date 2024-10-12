@@ -155,7 +155,8 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     }
 
     const existingRating = order.rating.product;
-
+    console.log(existingRating);
+    
     if (!existingRating) {
       order.rating = {
         product: productRating,
