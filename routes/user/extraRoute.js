@@ -5,6 +5,7 @@ const validateAccessToken = require("../../middlewares/validateToken");
 // Models
 const User = require("../../schemas/User");
 const Order = require("../../schemas/Order");
+const Shop = require("../../schemas/Shop");
 
 // Route to get all historical (completed/canceled) orders for the authenticated user
 router.get("/history", validateAccessToken, async (req, res) => {
@@ -126,7 +127,7 @@ router.get("/lastOrders", validateAccessToken, async (req, res) => {
       .json({ success: false, message: "Failed to retrieve last orders" });
   }
 });
-router.put("/rate/:id", validateAccessToken, async (req, res) => {
+router.put("/rate/:id", validateAccessToken, async (req, res) => {  
   try {
     const { email } = req.user; // JWT token'dan email alınıyor
     const { productRating, shopRating } = req.body; // Rating verileri body'den alınıyor
