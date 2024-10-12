@@ -170,13 +170,16 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
       await shop.save();
     }
 
-    const product = await Product.findById(order.items[0].product); // Örnek olarak ilk ürünü al
-    if (product) {
-      product.rating =
-        (product.rating * product.ratingCount + productRating) /
-        (product.ratingCount + 1);
-      product.ratingCount += 1;
-      await product.save();
+    for (const item of order.items) {
+      const product = await Product.findById(item.product); // Her bir item'in product'ını al
+      if (product) {
+        // Rating ve ratingCount hesaplaması
+        product.rating =
+          (product.rating * product.ratingCount + item.productRating) /
+          (product.ratingCount + 1);
+        product.ratingCount += 1;
+        await product.save(); // Ürünü kaydet
+      }
     }
 
     // Değişiklikleri kaydet

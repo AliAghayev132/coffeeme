@@ -173,7 +173,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         JSON.stringify({
           type: "ORDER_STATUS",
           state: status,
-          orderId: order._id,
+          order: order,
         })
       );
     }
