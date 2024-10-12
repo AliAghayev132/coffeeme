@@ -40,7 +40,7 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
       _id: product._id,
       name: product.name,
       photo: product.photo,
-      rayting: product.rayting,
+      rating: product.rating,
       discount: product.sizes.length > 0 ? product.sizes[0].discount : 0, // Assuming first size's discount is sufficient
       shop: {
         id: product.shop.id, // Include shop ID

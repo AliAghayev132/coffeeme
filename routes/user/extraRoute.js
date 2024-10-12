@@ -173,14 +173,18 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     }
 
     for (const item of order.items) {
-      const product = await Product.findById(item.product); // Her bir item'in product'ını al
+      const product = await Product.findById(item.product);
       if (product) {
-        // Rating ve ratingCount hesaplaması
+        const ratingValue = Number(item.productRating);
+        if (isNaN(ratingValue)) {
+          return res.status(400).json({ message: "Invalid product rating" });
+        }
+
         product.rating =
-          (product.rating * product.ratingCount + item.productRating) /
+          (product.rating * product.ratingCount + ratingValue) /
           (product.ratingCount + 1);
         product.ratingCount += 1;
-        await product.save(); // Ürünü kaydet
+        await product.save();
       }
     }
 
