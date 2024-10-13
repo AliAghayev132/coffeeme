@@ -123,7 +123,7 @@ router.post("/verify-otp", async (req, res) => {
     console.error(error);
     return res
       .status(500)
-      .json({ sucess: false, message: "Internal server error" });
+      .json({ success: false, message: "Internal server error" });
   }
 });
 // Change Password
@@ -289,7 +289,7 @@ router.post("/login", async (req, res) => {
       },
       process.env.ACCESS_SECRET_KEY,
       {
-        expiresIn: "1m",
+        expiresIn: "10m",
       }
     );
     const refreshToken = jwt.sign(
@@ -354,7 +354,7 @@ router.post("/refresh-token", async (req, res) => {
     const { email } = decoded;
     // Yeni access token oluştur
     const newToken = jwt.sign({ email }, process.env.ACCESS_SECRET_KEY, {
-      expiresIn: "1m",
+      expiresIn: "10m",
     });
     return res.status(200).json({ accessToken: newToken });
   } catch (error) {

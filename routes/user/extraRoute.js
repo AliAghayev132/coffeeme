@@ -131,10 +131,8 @@ router.get("/lastOrders", validateAccessToken, async (req, res) => {
 router.put("/rate/:id", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user; // JWT token'dan email alınıyor
-    const { productRating, shopRating } = req.body; // Rating verileri body'den alınıyor
+    const { productRating = 5, shopRating = 5 } = req.body; // Rating verileri body'den alınıyor
     const { id } = req.params; // Sipariş ID'si URL parametrelerinden alınıyor
-
-    console.log(productRating, shopRating, id);
 
     // Kullanıcıyı email ile bul
     const user = await User.findOne({ email });
@@ -155,8 +153,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     }
 
     const existingRating = order.rating.product;
-    console.log(existingRating);
-    
+
     if (!existingRating) {
       order.rating = {
         product: productRating,
@@ -176,7 +173,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     for (const item of order.items) {
       const product = await Product.findById(item.product);
       if (product) {
-        const ratingValue = Number(item.productRating);
+        const ratingValue = Number(order.rating.product);
         if (isNaN(ratingValue)) {
           return res.status(400).json({ message: "Invalid product rating" });
         }
@@ -195,6 +192,28 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     return res.status(200).json({ message: "Rating updated successfully" });
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+router.get("/bestsellers", validateAccessToken, async (req, res) => {
+  try {
+    const { email } = req.user;
+    const user = await User.find({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const bestSellingProducts = await Product.find()
+      .sort({ rating: -1 })
+      .limit(5);
+
+    return res.status(200).json({
+      success: true,
+      bestSellingProducts,
+    });
+  } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 });

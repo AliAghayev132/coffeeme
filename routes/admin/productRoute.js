@@ -30,8 +30,15 @@ router.post(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, sizes, category, description, discountType, type } =
-        req.body;
+      const {
+        name,
+        sizes,
+        category,
+        description,
+        discountType,
+        type,
+        additions, // Ekstralar
+      } = req.body;
 
       if (
         !name ||
@@ -39,7 +46,8 @@ router.post(
         !category ||
         !description ||
         !discountType ||
-        !type
+        !type ||
+        !additions // Ekstralar için kontrol
       ) {
         return res.status(400).json({ error: "All fields are required" });
       }
@@ -57,6 +65,14 @@ router.post(
         parsedSizes = sizes;
       }
 
+      // Ekstraları işle
+      let parsedAdditions;
+      if (typeof additions === "string") {
+        parsedAdditions = JSON.parse(additions);
+      } else {
+        parsedAdditions = additions;
+      }
+
       const newProduct = new Product({
         type,
         name,
@@ -64,6 +80,7 @@ router.post(
         category,
         description,
         discountType,
+        additions: parsedAdditions, // Ekstraları ekle
         shop: {
           id: shop._id,
           name: shop.name,
@@ -85,6 +102,7 @@ router.post(
     }
   }
 );
+
 router.put(
   "/:id",
   validateAccessToken,
@@ -92,9 +110,23 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, sizes, category, description, discountType } = req.body;
+      const {
+        name,
+        sizes,
+        category,
+        description,
+        discountType,
+        additions, // Ekstralar
+      } = req.body;
 
-      if (!name || !sizes || !category || !description || !discountType) {
+      if (
+        !name ||
+        !sizes ||
+        !category ||
+        !description ||
+        !discountType ||
+        !additions // Ekstralar için kontrol
+      ) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
@@ -111,11 +143,20 @@ router.put(
         parsedSizes = sizes;
       }
 
+      // Ekstraları işle
+      let parsedAdditions;
+      if (typeof additions === "string") {
+        parsedAdditions = JSON.parse(additions);
+      } else {
+        parsedAdditions = additions;
+      }
+
       product.name = name;
       product.sizes = parsedSizes;
       product.category = category;
       product.description = description;
       product.discountType = discountType;
+      product.additions = parsedAdditions; // Ekstraları güncelle
 
       if (req.file) {
         const photoFile = req.file;
@@ -145,6 +186,7 @@ router.put(
     }
   }
 );
+
 router.delete("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -209,11 +251,12 @@ router.delete(
     }
   }
 );
-router.put("/stock/:id", validateAccessToken, async (req, res) => {
-  try {
-    
-  } catch (error) {
 
-  }
-})
+// router.put("/stock/:id", validateAccessToken, async (req, res) => {
+//   try {
+    
+//   } catch (error) {
+
+//   }
+// })
 module.exports = router;

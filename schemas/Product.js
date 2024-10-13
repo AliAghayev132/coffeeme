@@ -20,6 +20,26 @@ const sizeSchema = new Schema({
   },
 });
 
+const additionSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  discount: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  discountedPrice: {
+    type: Number,
+    required: false,
+  },
+});
+
 const productSchema = new Schema({
   name: {
     type: String,
@@ -86,33 +106,52 @@ const productSchema = new Schema({
     type: Boolean,
     default: true,
   },
+  additions: {
+    extras: [additionSchema], // Ekstralar
+    syrups: [additionSchema], // Şuruplar
+  },
 });
+
 productSchema.pre("save", function (next) {
   this.sizes = this.sizes.map((size) => {
-    if (size.discount && size.discount > 0) {
-      // İndirimli fiyatı hesapla
-      size.discountedPrice = size.price - (size.price * size.discount) / 100;
-    } else {
-      size.discountedPrice = size.price;
-    }
-
-    // Özel yuvarlama fonksiyonunu kullan
-    size.discountedPrice = customRound(size.discountedPrice);
-    size.price = customRound(size.price); // Ana fiyatı da yuvarla
-
+    size.discountedPrice = calculateDiscountedPrice(size.price, size.discount);
     return size;
+  });
+
+  // Process additions (extras and syrups)
+  this.additions.extras = this.additions.extras.map((extra) => {
+    extra.discountedPrice = calculateDiscountedPrice(
+      extra.price,
+      extra.discount
+    );
+    return extra;
+  });
+
+  this.additions.syrups = this.additions.syrups.map((syrup) => {
+    syrup.discountedPrice = calculateDiscountedPrice(
+      syrup.price,
+      syrup.discount
+    );
+    return syrup;
   });
 
   next();
 });
 
-const Product = mongoose.model("Product", productSchema);
-module.exports = Product;
+function calculateDiscountedPrice(price, discount) {
+  let discountedPrice = price;
 
+  if (discount && discount > 0) {
+    discountedPrice = price - (price * discount) / 100;
+  }
+
+  return customRound(discountedPrice);
+}
+
+// Custom rounding function
 function customRound(value) {
   const rounded = Math.round(value * 100) / 100;
-
-  const decimalPart = rounded - Math.floor(rounded); // Ondalık kısmı al
+  const decimalPart = rounded - Math.floor(rounded);
 
   if (decimalPart >= 0.06) {
     return Math.ceil(rounded * 100) / 100;
@@ -120,3 +159,6 @@ function customRound(value) {
     return Math.floor(rounded * 100) / 100;
   }
 }
+
+const Product = mongoose.model("Product", productSchema);
+module.exports = Product;
