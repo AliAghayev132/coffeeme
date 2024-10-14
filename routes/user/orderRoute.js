@@ -40,6 +40,8 @@ router.post("/", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
 
+    console.log({ orderedItems });
+
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
@@ -85,7 +87,6 @@ router.post("/", validateAccessToken, async (req, res) => {
       });
     }
 
-    // Toplam fiyat hesaplaması (iki ondalık basamağa yuvarlıyoruz)
     const totalPrice = orderedItems.reduce((sum, item) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
@@ -278,7 +279,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
 });
 router.post("/checkout", validateAccessToken, async (req, res) => {
   try {
-    const { orderedItems, shop: reqShop, message } = req.body;
+    const { orderedItems, shop: reqShop } = req.body;
     const { email } = req.user;
 
     if (!orderedItems || orderedItems.length <= 0) {
@@ -316,6 +317,23 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
       const selectedSize = product.sizes.find(
         (size) => size.size === item.productSize
       );
+      
+      if (item.additions) {
+        const extrasValid = item.additions.extras
+          ? item.additions.extras.every((addition) =>
+              product.additions.extras.find((a) => a._id === addition._id)
+            )
+          : true; // Ekstra yoksa geçerli kabul et
+
+        const syrupsValid = item.additions.syrups
+          ? item.additions.syrups.every((syrup) =>
+              product.additions.syrups.find((s) => s._id === syrup._id)
+            )
+          : true; // Şurup yoksa geçerli kabul et
+
+        return selectedSize !== undefined && extrasValid && syrupsValid;
+      }
+
       return selectedSize !== undefined;
     });
 
@@ -341,12 +359,6 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
               : selectedSize.price || 0)
       );
     }, 0);
-
-    if (user.balance < totalDiscountedPrice) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User balance is insufficient" });
-    }
 
     return res.status(201).json({
       success: true,
