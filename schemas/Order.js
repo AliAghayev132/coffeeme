@@ -1,15 +1,25 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const additionItemSchema = new Schema({
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  discount: { type: Number, required: false },
+  discountedPrice: { type: Number, required: false },
+});
+
 const orderItemSchema = new Schema({
   product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
   discount: { type: Number, required: false },
   discountedPrice: { type: Number, required: false },
-  size: { type: String, require: true },
+  size: { type: String, required: true },
+  additions: {
+    extras: [additionItemSchema],
+    syrups: [additionItemSchema], 
+  },
 });
-
 const statusHistorySchema = new Schema({
   status: {
     type: String,

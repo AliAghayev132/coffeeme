@@ -40,8 +40,6 @@ router.post("/", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
 
-    console.log({ orderedItems });
-
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
@@ -78,7 +76,7 @@ router.post("/", validateAccessToken, async (req, res) => {
         (size) => size.size === item.productSize
       );
 
-      // Ekstralar ve şuruplar için geçerliliği kontrol et
+      // Validate extras and syrups
       const extrasValid = item.additions?.extras
         ? item.additions.extras.every((addition) => {
             const additionId = addition._id.toString();
@@ -107,7 +105,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       });
     }
 
-    // Toplam fiyatı hesapla (ekstraları ve şurupları dahil et)
+    // Calculate total price
     const totalPrice = orderedItems.reduce((sum, item) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
@@ -116,35 +114,28 @@ router.post("/", validateAccessToken, async (req, res) => {
         (size) => size.size === item.productSize
       );
 
-      // Ekstraların toplam fiyatını hesapla
-      const extrasPrice = item.additions?.extras?.length
-        ? item.additions.extras.reduce((total, addition) => {
-            const extra = product.additions.extras.find(
-              (a) => a._id.toString() === addition._id.toString()
-            );
-            console.log(extra);
+      const extrasPrice =
+        item.additions?.extras?.reduce((total, addition) => {
+          const extra = product.additions.extras.find(
+            (a) => a._id.toString() === addition._id.toString()
+          );
+          return total + (extra ? extra.price || 0 : 0);
+        }, 0) || 0;
 
-            return total + (extra ? extra.price || 0 : 0);
-          }, 0)
-        : 0;
-
-      const syrupsPrice = item.additions?.syrups?.length
-        ? item.additions.syrups.reduce((total, syrup) => {
-            const syrupItem = product.additions.syrups.find(
-              (s) => s._id.toString() === syrup._id.toString()
-            );
-            console.log(syrupItem);
-
-            return total + (syrupItem ? syrupItem.price || 0 : 0);
-          }, 0)
-        : 0;
+      const syrupsPrice =
+        item.additions?.syrups?.reduce((total, syrup) => {
+          const syrupItem = product.additions.syrups.find(
+            (s) => s._id.toString() === syrup._id.toString()
+          );
+          return total + (syrupItem ? syrupItem.price || 0 : 0);
+        }, 0) || 0;
 
       const itemPrice = selectedSize.price + extrasPrice + syrupsPrice;
 
       return roundToTwoDecimals(sum + item.productCount * itemPrice);
     }, 0);
 
-    // Toplam indirimli fiyatı hesapla (ekstraları ve şurupları dahil et)
+    // Calculate total discounted price
     const totalDiscountedPrice = orderedItems.reduce((sum, item) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
@@ -153,37 +144,35 @@ router.post("/", validateAccessToken, async (req, res) => {
         (size) => size.size === item.productSize
       );
 
-      const extrasPrice = item.additions?.extras?.length
-        ? item.additions.extras.reduce((total, addition) => {
-            const extra = product.additions.extras.find(
-              (a) => a._id.toString() === addition._id.toString()
-            );
-            return (
-              total +
-              (extra
-                ? category !== "standard"
-                  ? extra.discountedPrice
-                  : extra.price || 0
-                : 0)
-            );
-          }, 0)
-        : 0;
+      const extrasPrice =
+        item.additions?.extras?.reduce((total, addition) => {
+          const extra = product.additions.extras.find(
+            (a) => a._id.toString() === addition._id.toString()
+          );
+          return (
+            total +
+            (extra
+              ? category !== "standard"
+                ? extra.discountedPrice
+                : extra.price || 0
+              : 0)
+          );
+        }, 0) || 0;
 
-      const syrupsPrice = item.additions?.syrups?.length
-        ? item.additions.syrups.reduce((total, syrup) => {
-            const syrupItem = product.additions.syrups.find(
-              (s) => s._id.toString() === syrup._id.toString()
-            );
-            return (
-              total +
-              (syrupItem
-                ? category !== "standard"
-                  ? syrupItem.discountedPrice
-                  : syrupItem.price || 0
-                : 0)
-            );
-          }, 0)
-        : 0;
+      const syrupsPrice =
+        item.additions?.syrups?.reduce((total, syrup) => {
+          const syrupItem = product.additions.syrups.find(
+            (s) => s._id.toString() === syrup._id.toString()
+          );
+          return (
+            total +
+            (syrupItem
+              ? category !== "standard"
+                ? syrupItem.discountedPrice
+                : syrupItem.price || 0
+              : 0)
+          );
+        }, 0) || 0;
 
       const itemPrice =
         (category !== "standard"
@@ -204,6 +193,33 @@ router.post("/", validateAccessToken, async (req, res) => {
         const selectedSize = product.sizes.find(
           (size) => size.size === item.productSize
         );
+
+        const extras =
+          item.additions?.extras.map((extra) => {
+            const productExtra = product.additions.extras.find(
+              (e) => e._id.toString() === extra._id.toString()
+            );
+            return {
+              name: productExtra.name,
+              price: productExtra.price,
+              discount: productExtra.discount,
+              discountedPrice: productExtra.discountedPrice,
+            };
+          }) || [];
+
+        const syrups =
+          item.additions?.syrups.map((syrup) => {
+            const productSyrup = product.additions.syrups.find(
+              (s) => s._id.toString() === syrup._id.toString()
+            );
+            return {
+              name: productSyrup.name,
+              price: productSyrup.price,
+              discount: productSyrup.discount,
+              discountedPrice: productSyrup.discountedPrice,
+            };
+          }) || [];
+
         return {
           category: user.category,
           product: item.productId,
@@ -212,6 +228,10 @@ router.post("/", validateAccessToken, async (req, res) => {
           discount: roundToTwoDecimals(selectedSize.discount),
           discountedPrice: roundToTwoDecimals(selectedSize.discountedPrice),
           size: selectedSize.size,
+          additions: {
+            extras,
+            syrups,
+          },
         };
       }),
       shop: reqShop.id,
@@ -221,6 +241,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       status: "pending",
     });
 
+    // Check if user balance is sufficient
     if (user.balance < totalDiscountedPrice) {
       return res
         .status(400)
@@ -230,6 +251,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     user.balance -= totalDiscountedPrice;
     const savedOrder = await newOrder.save();
     await user.save();
+
     await User.findOneAndUpdate(
       { email },
       { $push: { orders: savedOrder._id } }
@@ -239,6 +261,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       { $push: { orders: savedOrder._id } }
     );
 
+    // Notify partner if connected
     const partner = await Partner.findOne({ shop: reqShop.id });
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
       PARTNERS_CONNECTIONS[partner._id].send(
@@ -252,6 +275,7 @@ router.post("/", validateAccessToken, async (req, res) => {
         })
       );
     }
+
     return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
     console.error(error);
@@ -297,10 +321,45 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       return res.status(400).json({ message: "Selected size does not exist" });
     }
 
+    const validItems = () => {
+      const orderedSyrup = orderedItem.additions.syrups[0];
+      const orderedExtra = orderedItem.additions.extras[0];
+
+      const validExtra = product.additions.extras.find(
+        (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
+      );
+      const validSyrup = product.additions.syrups.find(
+        (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
+      );
+      return Boolean(validExtra && validSyrup);
+    };
+
+    if (!validItems()) {
+      return res.status(400).json({
+        success: false,
+        message: "Selected additions does not exist for the product",
+      });
+    }
+
     // Calculate total price (for a single item)
-    const totalPrice = selectedSize.price || 0;
+    const totalPrice =
+      (selectedSize.price || 0) +
+      (orderedItem.additions.syrups[0]
+        ? orderedItem.additions.syrups[0].price
+        : 0) +
+      (orderedItem.additions.extras[0]
+        ? orderedItem.additions.extras[0].price
+        : 0);
     const totalDiscountedPrice =
-      category !== "standard" ? selectedSize.discountedPrice : totalPrice;
+      (category !== "standard" ? selectedSize.discountedPrice : totalPrice) +
+      (orderedItem.additions.syrups[0]
+        ? orderedItem.additions.syrups[0].discountedPrice
+        : 0) +
+      (orderedItem.additions.extras[0]
+        ? orderedItem.additions.extras[0].discountedPrice
+        : 0);
+
+    console.log("Bura bax",orderedItem.additions);
 
     const newOrder = new Order({
       user: user._id,
@@ -308,11 +367,31 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         {
           category: user.category,
           product: orderedItem.productId,
-          quantity: orderedItem.productCount, // Assuming this is 1 for loyalty orders
+          quantity: orderedItem.productCount || 1,
           price: roundToTwoDecimals(totalPrice),
           discount: roundToTwoDecimals(selectedSize.discount),
           discountedPrice: roundToTwoDecimals(totalDiscountedPrice),
           size: selectedSize.size,
+          additions: {
+            syrups: orderedItem.additions.syrups[0]
+              ? {
+                  _id: orderedItem.additions.syrups[0]._id,
+                  name: orderedItem.additions.syrups[0].name,
+                  price: orderedItem.additions.syrups[0].price,
+                  discountedPrice:
+                    orderedItem.additions.syrups[0].discountedPrice,
+                }
+              : [],
+            extras: orderedItem.additions.extras[0]
+              ? {
+                  _id: orderedItem.additions.extras[0]._id,
+                  name: orderedItem.additions.extras[0].name,
+                  price: orderedItem.additions.extras[0].price,
+                  discountedPrice:
+                    orderedItem.additions.extras[0].discountedPrice,
+                }
+              : [],
+          },
         },
       ],
       shop: reqShop.id,
@@ -482,12 +561,8 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
         extrasPrice +
         syrupsPrice;
 
-      console.log({ extrasPrice, syrupsPrice, itemPrice });
-
       return roundToTwoDecimals(sum + item.productCount * itemPrice);
     }, 0);
-
-    console.log({ totalDiscountedPrice });
 
     return res.status(201).json({
       success: true,
@@ -501,6 +576,8 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
 });
 router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
   try {
+    console.log("Bura");
+
     const { orderedItem, shop: reqShop } = req.body; // Expecting a single item
     const { email } = req.user;
 
@@ -552,6 +629,27 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
     const selectedSize = product.sizes.find(
       (size) => size.size === orderedItem.productSize
     );
+
+    const validItems = () => {
+      const orderedSyrup = orderedItem.additions.syrups[0];
+      const orderedExtra = orderedItem.additions.extras[0];
+
+      const validExtra = product.additions.extras.find(
+        (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
+      );
+      const validSyrup = product.additions.syrups.find(
+        (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
+      );
+      return Boolean(validExtra && validSyrup);
+    };
+
+    if (!validItems()) {
+      return res.status(400).json({
+        success: false,
+        message: "Selected additions does not exist for the product",
+      });
+    }
+
     if (!selectedSize) {
       return res.status(400).json({
         success: false,
