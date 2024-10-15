@@ -31,7 +31,7 @@ router.post(
   upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
   async (req, res) => {
     try {
-      const { name, longitude, latitude, address } = req.body;
+      const { name, longitude, latitude, address, shortAddress } = req.body;
 
       if (!name || !longitude || !latitude || !address) {
         return res.status(400).json({
@@ -40,6 +40,7 @@ router.post(
       }
 
       const newShop = new Shop({
+        shortAddress,
         address,
         name,
         location: {
@@ -94,7 +95,7 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, longitude, latitude, address } = req.body;
+      const { name, longitude, latitude, address, shortAddress } = req.body;
 
       const shop = await Shop.findById(id);
       if (!shop) {
@@ -102,7 +103,7 @@ router.put(
       }
 
       const oldDir = `public/uploads/shops/${shop.name}-${shop.address}`;
-
+      if (shortAddress) shop.shortAddress = shortAddress;
       if (name) shop.name = name;
       if (longitude && latitude) {
         shop.location = {

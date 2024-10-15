@@ -6,7 +6,10 @@ const shopSchema = new Schema({
   address: {
     type: String,
     required: true,
-    unique: true,
+  },
+  shortAddress: {
+    type: String,
+    required: true,
   },
   name: {
     type: String,

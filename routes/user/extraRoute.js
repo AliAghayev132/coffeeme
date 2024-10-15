@@ -7,6 +7,7 @@ const User = require("../../schemas/User");
 const Order = require("../../schemas/Order");
 const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
+const customRound = require("../../utils/roundToTwoDecimals");
 
 // Route to get all historical (completed/canceled) orders for the authenticated user
 router.get("/history", validateAccessToken, async (req, res) => {
@@ -164,8 +165,8 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     // Mağaza ve ürün puanlarını güncelle
     const shop = await Shop.findById(order.shop);
     if (shop) {
-      shop.rating =
-        (shop.rating * shop.ratingCount + shopRating) / (shop.ratingCount + 1);
+      roundToTwoDecimals(shop.rating =
+        (shop.rating * shop.ratingCount + shopRating) / (shop.ratingCount + 1));
       shop.ratingCount += 1;
       await shop.save();
     }
@@ -178,9 +179,9 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
           return res.status(400).json({ message: "Invalid product rating" });
         }
 
-        product.rating =
+        roundToTwoDecimals(product.rating =
           (product.rating * product.ratingCount + ratingValue) /
-          (product.ratingCount + 1);
+          (product.ratingCount + 1));
         product.ratingCount += 1;
         await product.save();
       }
