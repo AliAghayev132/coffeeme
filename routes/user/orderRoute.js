@@ -325,12 +325,16 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       const orderedSyrup = orderedItem.additions.syrups[0];
       const orderedExtra = orderedItem.additions.extras[0];
 
-      const validExtra = product.additions.extras.find(
-        (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
-      );
-      const validSyrup = product.additions.syrups.find(
-        (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
-      );
+      const validExtra = orderedExtra
+        ? product.additions.extras.find(
+            (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
+          )
+        : true;
+      const validSyrup = orderedSyrup
+        ? product.additions.syrups.find(
+            (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
+          )
+        : true;
       return Boolean(validExtra && validSyrup);
     };
 
@@ -359,7 +363,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         ? orderedItem.additions.extras[0].discountedPrice
         : 0);
 
-    console.log("Bura bax",orderedItem.additions);
+    console.log("Bura bax", orderedItem.additions);
 
     const newOrder = new Order({
       user: user._id,
@@ -634,12 +638,16 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
       const orderedSyrup = orderedItem.additions.syrups[0];
       const orderedExtra = orderedItem.additions.extras[0];
 
-      const validExtra = product.additions.extras.find(
-        (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
-      );
-      const validSyrup = product.additions.syrups.find(
-        (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
-      );
+      const validExtra = orderedExtra
+        ? product.additions.extras.find(
+            (a) => a._id.toString() === orderedExtra._id // product id'sini string'e çevir ve karşılaştır
+          )
+        : true;
+      const validSyrup = orderedSyrup
+        ? product.additions.syrups.find(
+            (a) => a._id.toString() === orderedSyrup._id // product id'sini string'e çevir ve karşılaştır
+          )
+        : true;
       return Boolean(validExtra && validSyrup);
     };
 
