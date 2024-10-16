@@ -7,7 +7,7 @@ const User = require("../../schemas/User");
 const Order = require("../../schemas/Order");
 const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
-const customRound = require("../../utils/roundToTwoDecimals");
+const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
 // Route to get all historical (completed/canceled) orders for the authenticated user
 router.get("/history", validateAccessToken, async (req, res) => {
