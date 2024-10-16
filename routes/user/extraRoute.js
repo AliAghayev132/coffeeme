@@ -132,7 +132,7 @@ router.get("/lastOrders", validateAccessToken, async (req, res) => {
 router.put("/rate/:id", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user; // JWT token'dan email alınıyor
-    const { productRating = 5, shopRating = 5 } = req.body; // Rating verileri body'den alınıyor
+    const { productRating = null, shopRating = null } = req.body; // Rating verileri body'den alınıyor
     const { id } = req.params; // Sipariş ID'si URL parametrelerinden alınıyor
 
     // Kullanıcıyı email ile bul
@@ -157,33 +157,40 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
 
     if (!existingRating) {
       order.rating = {
-        product: productRating,
-        shop: shopRating,
+        product: productRating || null,
+        shop: shopRating || null,
       };
     }
 
     // Mağaza ve ürün puanlarını güncelle
     const shop = await Shop.findById(order.shop);
-    if (shop) {
-      roundToTwoDecimals(shop.rating =
-        (shop.rating * shop.ratingCount + shopRating) / (shop.ratingCount + 1));
+    if (shop && shopRating) {
+      roundToTwoDecimals(
+        (shop.rating =
+          (shop.rating * shop.ratingCount + shopRating) /
+          (shop.ratingCount + 1))
+      );
       shop.ratingCount += 1;
       await shop.save();
     }
 
-    for (const item of order.items) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        const ratingValue = Number(order.rating.product);
-        if (isNaN(ratingValue)) {
-          return res.status(400).json({ message: "Invalid product rating" });
-        }
+    if (productRating) {
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          const ratingValue = Number(order.rating.product);
+          if (isNaN(ratingValue)) {
+            return res.status(400).json({ message: "Invalid product rating" });
+          }
 
-        roundToTwoDecimals(product.rating =
-          (product.rating * product.ratingCount + ratingValue) /
-          (product.ratingCount + 1));
-        product.ratingCount += 1;
-        await product.save();
+          roundToTwoDecimals(
+            (product.rating =
+              (product.rating * product.ratingCount + ratingValue) /
+              (product.ratingCount + 1))
+          );
+          product.ratingCount += 1;
+          await product.save();
+        }
       }
     }
 

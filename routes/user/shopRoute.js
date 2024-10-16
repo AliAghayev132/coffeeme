@@ -17,12 +17,14 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
     const user = await User.findOne({ email })
       .populate({
         path: "favorites.shops", // Populate favorite shops
-        select: "_id name address", // Only get shop ID and name
+        select: "_id name address photo logo shortAddress", // Only get shop ID and name
       })
       .populate({
         path: "favorites.products", // Populate favorite products
-        select: "_id name photo rayting sizes shop", // Include shop data
+        select: "_id name photo rating sizes shop", // Include shop data
       });
+
+    console.log(user.favorites.shops);
 
     if (!user) {
       return res
@@ -34,6 +36,9 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
       _id: shop._id,
       name: shop.name,
       address: shop.address,
+      logo: shop.logo,
+      photo: shop.photo,
+      shortAddress: shop.shortAddress,
     }));
 
     const favoriteProducts = user.favorites.products.map((product) => ({
@@ -45,6 +50,7 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
       shop: {
         id: product.shop.id, // Include shop ID
         name: product.shop.name, // Include shop name
+        shortAddress: product.shop.shortAddress,
       },
     }));
 
