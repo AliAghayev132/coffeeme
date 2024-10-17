@@ -185,7 +185,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
             (product.rating * product.ratingCount + ratingValue) /
               (product.ratingCount + 1)
           );
-          product.ratingCount += 1;
+          product.ratingCount +=   1;
           await product.save();
         }
       }

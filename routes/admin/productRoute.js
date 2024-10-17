@@ -116,6 +116,7 @@ router.put(
         category,
         description,
         discountType,
+        type,
         additions, // Ekstralar
       } = req.body;
 
@@ -125,6 +126,7 @@ router.put(
         !category ||
         !description ||
         !discountType ||
+        !type ||
         !additions // Ekstralar için kontrol
       ) {
         return res.status(400).json({ error: "All fields are required" });
@@ -156,6 +158,7 @@ router.put(
       product.category = category;
       product.description = description;
       product.discountType = discountType;
+      product.type = type;
       product.additions = parsedAdditions; // Ekstraları güncelle
 
       if (req.file) {
@@ -254,7 +257,7 @@ router.delete(
 
 // router.put("/stock/:id", validateAccessToken, async (req, res) => {
 //   try {
-    
+
 //   } catch (error) {
 
 //   }
