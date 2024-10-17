@@ -165,10 +165,8 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     // Mağaza ve ürün puanlarını güncelle
     const shop = await Shop.findById(order.shop);
     if (shop && shopRating) {
-      roundToTwoDecimals(
-        (shop.rating =
-          (shop.rating * shop.ratingCount + shopRating) /
-          (shop.ratingCount + 1))
+      shop.rating = roundToTwoDecimals(
+        (shop.rating * shop.ratingCount + shopRating) / (shop.ratingCount + 1)
       );
       shop.ratingCount += 1;
       await shop.save();
@@ -183,10 +181,9 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
             return res.status(400).json({ message: "Invalid product rating" });
           }
 
-          roundToTwoDecimals(
-            (product.rating =
-              (product.rating * product.ratingCount + ratingValue) /
-              (product.ratingCount + 1))
+          product.rating = roundToTwoDecimals(
+            (product.rating * product.ratingCount + ratingValue) /
+              (product.ratingCount + 1)
           );
           product.ratingCount += 1;
           await product.save();

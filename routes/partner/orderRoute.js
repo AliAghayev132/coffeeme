@@ -117,7 +117,6 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       user.history.push(order._id);
       if (user.category !== "premium") {
         // streakPremium
-
         if (
           (user.loyalty !== 0 &&
             !order.loyalty &&
