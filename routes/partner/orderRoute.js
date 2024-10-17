@@ -122,7 +122,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
           (user.loyalty !== 0 &&
             !order.loyalty &&
             user.category === "streakPremium") ||
-          user.category === "standard"
+          (!order.loyalty && user.category === "standard")
         )
           if (user.loyalty < 10) {
             ++user.loyalty;
@@ -144,7 +144,8 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       }
     }
 
-    if (status === "cancelled") {
+    if (status === "cancelled" && order.loyalty) {
+      user.loyalty = 10;
       partner.orders = partner.orders.filter(
         (orderId) => orderId.toString() !== id
       );
