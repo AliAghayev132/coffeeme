@@ -321,6 +321,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       return res.status(400).json({ message: "Selected size does not exist" });
     }
 
+  
     const validItems = () => {
       const orderedSyrup = orderedItem.additions.syrups[0];
       const orderedExtra = orderedItem.additions.extras[0];
@@ -363,7 +364,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         ? orderedItem.additions.extras[0].discountedPrice
         : 0);
 
-    console.log("Bura bax", orderedItem.additions);
 
     const newOrder = new Order({
       user: user._id,

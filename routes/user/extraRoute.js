@@ -108,10 +108,10 @@ router.get("/lastOrders", validateAccessToken, async (req, res) => {
         .json({ success: false, message: "User not found" });
 
     // Find the user's last 10 orders, sorted by the most recent
-    const orders = await Order.find({ user: user._id })
-      .sort({ _id: -1 }) // Sort orders by the most recent first
-      .populate("shop", "name address logo") // Populate the shop field with only the logo
-      .limit(10); // Limit to the last 10 orders
+    const orders = await Order.find({ user: user._id, loyalty: { $ne: true } }) // loyalty true olmayan siparişleri getir
+      .sort({ _id: -1 }) // Siparişleri en son eklenen siparişten başlatarak sırala
+      .populate("shop", "name address logo") // Shop alanını doldur, sadece name, address, ve logo alanlarını getir
+      .limit(10); // Son 10 siparişi getir
 
     // Extract the shop logos from the orders
     const shopLogos = orders.map((order) => order.shop || null);
