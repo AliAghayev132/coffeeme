@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
   {
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
     firstname: { type: String, default: null },
     secondname: { type: String, default: null },
     image: { type: String, default: null },
@@ -49,15 +53,126 @@ const userSchema = new Schema(
         itemType: { type: String, required: true, enum: ["Shop", "Product"] }, // Reference to either Shop or Product
       },
     ],
+    lastLocationUpdate: {
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      location: {
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+      },
+    },
+    extraDetails: {
+      mostGoingCoffeeShop: { type: Schema.Types.ObjectId, ref: "Shop" },
+      mostOrderedThreeProducts: [
+        { type: Schema.Types.ObjectId, ref: "Product" },
+      ],
+      overAllRating: {
+        rating: {
+          type: Number,
+          default: 0,
+        },
+        count: {
+          type: Number,
+          default: 0,
+        },
+      },
+    },
+    visitedCoffeeShops: [
+      {
+        shopId: {
+          type: Schema.Types.ObjectId,
+          ref: "Shop",
+        },
+        count: {
+          type: Number,
+          default: 1,
+        },
+      },
+    ],
+    orderedProducts: [
+      {
+        orderId: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        count: {
+          type: Number,
+          default: 1,
+        },
+      },
+    ],
   },
   { versionKey: false }
 );
 
-// Pre-save middleware to track category changes
+// Pre-save middleware to track category changes and ensure uniqueness
 userSchema.pre("save", function (next) {
   if (this.isModified("category")) {
     this.categoryModifiedAt = new Date(); // Update timestamp when category is changed
   }
+
+  // Normalize visitedCoffeeShops to ensure unique shopId
+  const uniqueVisitedCoffeeShops = [];
+  this.visitedCoffeeShops.forEach((shopId) => {
+    if (shopId) {
+      const existingShop = uniqueVisitedCoffeeShops.find((shop) =>
+        shop.equals(shopId)
+      );
+      if (existingShop) {
+        ++existingShop.count;
+      } else {
+        uniqueVisitedCoffeeShops.push(shopId);
+      }
+    }
+  });
+  this.visitedCoffeeShops = uniqueVisitedCoffeeShops;
+
+  // Normalize orderedProducts to ensure unique orderId
+  const uniqueOrderedProducts = [];
+  this.orderedProducts.forEach((orderId) => {
+    if (orderId) {
+      const existingProduct = uniqueOrderedProducts.find((product) =>
+        product.equals(orderId)
+      );
+      if (existingProduct) {
+        ++existingProduct.count;
+      } else {
+        uniqueOrderedProducts.push(orderId);
+      }
+    }
+  });
+  this.orderedProducts = uniqueOrderedProducts;
+
+  // Calculate mostOrderedThreeProducts
+  if (this.orderedProducts.length > 0) {
+
+    // Sort products by count in descending order
+    const sortedProducts = this.orderedProducts.sort(
+      (a, b) => b.count - a.count
+    );
+
+    // Take the top three products
+    this.extraDetails.mostOrderedThreeProducts = sortedProducts
+      .slice(0, 3);
+  } else {
+    this.extraDetails.mostOrderedThreeProducts = []; // Set to empty array if none
+  }
+
+  // Calculate mostGoingCoffeeShop
+  if (this.visitedCoffeeShops.length > 0) {
+    // Sort shops by count in descending order
+    const sortedShops = this.visitedCoffeeShops.sort(
+      (a, b) => b.count - a.count
+    );
+    
+    // Set the most visited shop
+    this.extraDetails.mostGoingCoffeeShop = sortedShops[0]._id; // Take the most visited shop
+  } else {
+    this.extraDetails.mostGoingCoffeeShop = null; // Set to null if none
+  }
+
   next();
 });
 

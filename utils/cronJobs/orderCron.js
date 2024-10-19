@@ -7,7 +7,7 @@ const {
   USERS_CONNECTIONS, // Import the USER_CONNECTIONS
 } = require("../socket/websokcetUtil");
 
-const EXPIRATION_TIME_MINS = 1;
+const EXPIRATION_TIME_MINS = 20;
 
 const cancelExpiredOrders = async () => {
   try {

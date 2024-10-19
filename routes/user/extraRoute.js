@@ -9,6 +9,8 @@ const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
 const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
+const extraController = require("../../controllers/user/extra/extraController");
+
 // Route to get all historical (completed/canceled) orders for the authenticated user
 router.get("/history", validateAccessToken, async (req, res) => {
   try {
@@ -181,11 +183,26 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
             return res.status(400).json({ message: "Invalid product rating" });
           }
 
+          if (!user.extraDetails) {
+            user.extraDetails = { overAllRating: { rating: 0, count: 0 } };
+          } else if (!user.extraDetails.overAllRating) {
+            user.extraDetails.overAllRating = { rating: 0, count: 0 };
+          }
+
+          console.log(user.extraDetails.overAllRating);
+          
+
+          user.extraDetails.overAllRating.count += 1;
+          user.extraDetails.overAllRating.rating = roundToTwoDecimals(
+            (user.extraDetails.overAllRating.rating * (user.extraDetails.overAllRating.count - 1) + ratingValue) /
+            user.extraDetails.overAllRating.count
+          );
+
           product.rating = roundToTwoDecimals(
             (product.rating * product.ratingCount + ratingValue) /
               (product.ratingCount + 1)
           );
-          product.ratingCount +=   1;
+          product.ratingCount += 1;
           await product.save();
         }
       }
@@ -193,6 +210,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
 
     // Değişiklikleri kaydet
     await order.save();
+    await user.save();
 
     return res.status(200).json({ message: "Rating updated successfully" });
   } catch (error) {
@@ -203,7 +221,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
 router.get("/bestsellers", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
-    const user = await User.find({ email });
+    const user = await User.findOne({ email });
     if (!user) {
       return res
         .status(404)
@@ -222,5 +240,31 @@ router.get("/bestsellers", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+router.put("/change-plan", validateAccessToken, async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { category } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    user.category = category;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+router.put(
+  "/update-location",
+  validateAccessToken,
+  extraController.updateLocation
+);
 
 module.exports = router;

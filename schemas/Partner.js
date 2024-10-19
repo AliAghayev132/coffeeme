@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const PartnerSchema = new Schema({
+  isOnline: {
+    type: Boolean,
+    default: false,
+  },
   fullname: {
     type: String,
     required: false,
@@ -48,6 +52,15 @@ const PartnerSchema = new Schema({
     default: 0,
   },
   followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  closeUsers: [
+    {
+      userId: { type: Schema.Types.ObjectId, ref: "User" },
+      lastLocationUpdate: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);

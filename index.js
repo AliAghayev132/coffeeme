@@ -1,14 +1,14 @@
 const express = require("express");
 const app = express();
-const fs = require('fs');
+const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
-const WebSocket = require('ws');
-const https = require('https');
-const http = require('http');
+const WebSocket = require("ws");
+const https = require("https");
+const http = require("http");
 const mongoose = require("mongoose");
 require("dotenv").config();
-require("./utils/cronJobs/orderCron");
+require("./utils/cronJobs/setupCron");
 
 // Routers
 const partnerRouter = require("./routes/partnerRoute");
@@ -32,10 +32,16 @@ const setupMiddleware = () => {
 // HTTPS Server Setup
 const setupServer = () => {
   let server;
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     try {
-      const privateKey = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/privkey.pem', 'utf8');
-      const certificate = fs.readFileSync('/etc/letsencrypt/live/coffeeme.app/fullchain.pem', 'utf8');
+      const privateKey = fs.readFileSync(
+        "/etc/letsencrypt/live/coffeeme.app/privkey.pem",
+        "utf8"
+      );
+      const certificate = fs.readFileSync(
+        "/etc/letsencrypt/live/coffeeme.app/fullchain.pem",
+        "utf8"
+      );
       const credentials = { key: privateKey, cert: certificate };
       server = https.createServer(credentials, app);
       console.log("HTTPS server running");
@@ -60,7 +66,7 @@ const setupWebSocket = (server) => {
 // Mongoose Connection
 const connectToMongoDB = async () => {
   try {
-    mongoose.connect(process.env.MONGO_URI); 
+    mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB");
   } catch (err) {
     console.error("Failed to connect to MongoDB", err);
@@ -77,9 +83,9 @@ const setupRoutes = () => {
   app.use("/public", express.static("public"));
 
   // Serve static files for the client
-  app.use(express.static(path.join(__dirname, './client/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, './client/dist/index.html'));
+  app.use(express.static(path.join(__dirname, "./client/dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "./client/dist/index.html"));
   });
 };
 
@@ -87,7 +93,7 @@ const setupRoutes = () => {
 const setupErrorHandling = () => {
   app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!');
+    res.status(500).send("Something broke!");
   });
 };
 
@@ -110,4 +116,3 @@ const startServer = async () => {
 };
 
 startServer();
- 

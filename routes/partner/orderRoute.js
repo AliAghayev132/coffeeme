@@ -18,14 +18,36 @@ router.get("/", validateAccessToken, async (req, res) => {
       populate: [
         {
           path: "user",
-          select: "firstname secondname email phone", // Add other fields you need here
+          select:
+            "firstname secondname email phone birthdate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
+          populate: [
+            {
+              path: "extraDetails.mostOrderedThreeProducts", // En çok sipariş edilen 3 ürünü ekle
+              select: "name", // Ürün bilgileri
+            },
+            {
+              path: "extraDetails.mostGoingCoffeeShop", // En çok gidilen kafe
+              select: "name", // Kafe bilgileri (gerekirse alanları ayarla)
+            },
+            {
+              path: "history",
+              match: { "rating.product": { $ne: null } }, // rating.product değeri dolu olanları al
+              options: { sort: { createdAt: -1 }, limit: 1 },
+              select: "rating items",
+              populate: {
+                path: "items.product", // Ürün bilgilerini popüle et
+                select: "name", // Yalnızca isim alanını al
+              },
+            },
+          ],
         },
         {
           path: "items.product",
-          select: "name category price", // Adjust fields based on your Product schema
+          select: "name category price type additions", // Adjust fields based on your Product schema
         },
       ],
     });
+
     if (!partner) {
       return res
         .status(404)
@@ -39,6 +61,8 @@ router.get("/", validateAccessToken, async (req, res) => {
           name: item.product.name,
           category: item.product.category,
           price: item.product.price,
+          type: item.product.type,
+          additions: item.product.additions,
         },
         quantity: item.quantity,
         price: item.price,
@@ -58,6 +82,11 @@ router.get("/", validateAccessToken, async (req, res) => {
         email: order.user.email,
         phone: order.user.phone,
         _id: order.user._id,
+        birthdate: order.user.birthdate,
+        extraDetails: order.user.extraDetails,
+        overAllRating: order.user.overAllRating,
+        lastOrders:
+          order.user.history.length > 0 ? order.user.history[0] : null, // En son siparişi almak
       },
     }));
 
@@ -115,6 +144,11 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       partner.balance += order.totalDiscountedPrice;
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
+      user.visitedCoffeeShops.push(partner.shop._id);
+      order.items.forEach((item) => {
+        console.log({ item });
+        user.orderedProducts.push(item.product);
+      });
       if (user.category !== "premium") {
         // streakPremium
         if (
