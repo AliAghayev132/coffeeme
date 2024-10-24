@@ -59,8 +59,8 @@ const userSchema = new Schema(
         default: Date.now,
       },
       location: {
-        latitude: { type: Number, required: true },
-        longitude: { type: Number, required: true },
+        latitude: { type: Number },
+        longitude: { type: Number },
       },
     },
     extraDetails: {
@@ -147,15 +147,13 @@ userSchema.pre("save", function (next) {
 
   // Calculate mostOrderedThreeProducts
   if (this.orderedProducts.length > 0) {
-
     // Sort products by count in descending order
     const sortedProducts = this.orderedProducts.sort(
       (a, b) => b.count - a.count
     );
 
     // Take the top three products
-    this.extraDetails.mostOrderedThreeProducts = sortedProducts
-      .slice(0, 3);
+    this.extraDetails.mostOrderedThreeProducts = sortedProducts.slice(0, 3);
   } else {
     this.extraDetails.mostOrderedThreeProducts = []; // Set to empty array if none
   }
@@ -166,7 +164,7 @@ userSchema.pre("save", function (next) {
     const sortedShops = this.visitedCoffeeShops.sort(
       (a, b) => b.count - a.count
     );
-    
+
     // Set the most visited shop
     this.extraDetails.mostGoingCoffeeShop = sortedShops[0]._id; // Take the most visited shop
   } else {

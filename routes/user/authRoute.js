@@ -34,6 +34,7 @@ const upload = multer({
 // Register
 router.post("/send-otp", async (req, res) => {
   const { email, phone } = req.body;
+
   try {
     if (!validateEmail(email))
       return res

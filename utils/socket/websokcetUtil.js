@@ -21,12 +21,11 @@ const handleWebSocketConnection = (wss) => {
         return;
       }
       jwt.verify(token, process.env.ACCESS_SECRET_KEY, async (err, decoded) => {
-  
-        
         if (err) {
           ws.close(4001, "Invalid token"); // Close with a reason
           return;
         }
+
         if (role === "user") {
           const { email } = decoded;
           const user = await User.findOne({ email });
@@ -45,7 +44,6 @@ const handleWebSocketConnection = (wss) => {
         } else if (role === "partner") {
           const { username } = decoded;
           const partner = await Partner.findOne({ username });
-
           if (partner && partner._id) {
             PARTNERS_CONNECTIONS[partner._id] = ws;
 

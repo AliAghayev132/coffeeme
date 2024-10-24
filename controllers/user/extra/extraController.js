@@ -3,11 +3,19 @@ const router = express.Router();
 const User = require("../../../schemas/User");
 const Partner = require("../../../schemas/Partner");
 const Shop = require("../../../schemas/Shop");
+const { PARTNERS_CONNECTIONS } = require("../../../utils/socket/websokcetUtil");
 
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
     const { latitude, longitude } = req.body;
+    console.log({ latitude, longitude });
+
+    if (!latitude || !longitude) {
+      return res
+        .status(400)
+        .json({ message: "Latitude and Longitude are required" });
+    }
 
     // Kullanıcıyı bul
     const user = await User.findOne({ email });
@@ -28,7 +36,7 @@ const updateLocation = async (req, res) => {
           distanceField: "distance", // Mesafeyi saklayacağımız alan
           spherical: true, // Spherical model kullan
           minDistance: 0, // Mesafe sıfırdan başlasın
-          maxDistance: 1000,
+          maxDistance: 500,
         },
       },
     ]);
@@ -50,9 +58,32 @@ const updateLocation = async (req, res) => {
             lastLocationUpdate: Date.now(),
           });
           await partner.save(); // Partner kaydet
+          if (PARTNERS_CONNECTIONS[partner._id]) {
+            PARTNERS_CONNECTIONS[partner._id].send(
+              JSON.stringify({
+                type: "CLOSE_USER",
+                data: {
+                  _id: user._id,
+                  fullName: user.firstname + " " + user.secondname,
+                  birthDate: user.birthdate,
+                  image: user.image,
+                },
+              })
+            );
+          }
         }
       }
     }
+
+    user.lastLocationUpdate = {
+      date: Date.now(),
+      location: {
+        latitude: latitude || 40.3852952, // Varsayılan değer ekleyin
+        longitude: longitude || 49.8508528, // Varsayılan değer ekleyin
+      },
+    };
+
+    await user.save();
     return res.status(200).json({ success: true, shops });
   } catch (error) {
     console.error(error);
