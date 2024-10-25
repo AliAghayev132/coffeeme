@@ -42,8 +42,6 @@ const updateLocation = async (req, res) => {
       },
     ]);
 
-    console.log(user.gender);
-
     // Eğer dükkan bulunduyse partnerleri güncelle
     for (const shop of shops) {
       const partner = await Partner.findOne({ shop: shop._id }).populate(
