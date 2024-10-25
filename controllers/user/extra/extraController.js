@@ -8,6 +8,7 @@ const { PARTNERS_CONNECTIONS } = require("../../../utils/socket/websokcetUtil");
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
+    4;
     const { latitude, longitude } = req.body;
     console.log({ latitude, longitude });
 
@@ -41,13 +42,15 @@ const updateLocation = async (req, res) => {
       },
     ]);
 
+    console.log(user.gender);
+
     // Eğer dükkan bulunduyse partnerleri güncelle
     for (const shop of shops) {
       const partner = await Partner.findOne({ shop: shop._id }).populate(
         "shop"
       );
       if (partner) {
-        // closeUsers dizisinde kullanıcıyı bul
+        // closeUsers dizisinde kullanıcıyı bul3
         const userInCloseUsers = partner.closeUsers.find(
           (closeUser) => closeUser.userId.toString() === user._id.toString()
         );
@@ -58,15 +61,19 @@ const updateLocation = async (req, res) => {
             lastLocationUpdate: Date.now(),
           });
           await partner.save(); // Partner kaydet
+          
           if (PARTNERS_CONNECTIONS[partner._id]) {
             PARTNERS_CONNECTIONS[partner._id].send(
               JSON.stringify({
                 type: "CLOSE_USER",
                 data: {
                   _id: user._id,
-                  fullName: user.firstname + " " + user.secondname,
+                  firstName: user.firstname,
+                  secondName: user.secondname,
                   birthDate: user.birthdate,
                   image: user.image,
+                  birthDate: user.birthdate,
+                  gender: user.gender,
                 },
               })
             );

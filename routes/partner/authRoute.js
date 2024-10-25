@@ -4,7 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validateAccessToken = require("../../middlewares/validateToken");
-
+  
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -13,7 +13,9 @@ router.post("/login", async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(password, partner.password);
     if (!passwordMatch) {
-      return res.status(400).json({ error: "Invalid credentials" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
     }
     const accessToken = jwt.sign(
       {
