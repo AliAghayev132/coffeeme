@@ -1,5 +1,3 @@
-const express = require("express");
-const router = express.Router();
 const User = require("../../../schemas/User");
 const Partner = require("../../../schemas/Partner");
 const Shop = require("../../../schemas/Shop");
@@ -8,7 +6,6 @@ const { PARTNERS_CONNECTIONS } = require("../../../utils/socket/websokcetUtil");
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
-    4;
     const { latitude, longitude } = req.body;
     console.log({ latitude, longitude });
 

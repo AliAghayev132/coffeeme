@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const notificationSchema = new Schema({
   title: {
     type: String,
-    required: true, // Corrected "require" to "required"
+    required: true, // Düzeltme: "require" yerine "required"
   },
   message: {
     type: String,
@@ -12,7 +12,14 @@ const notificationSchema = new Schema({
   },
   category: {
     type: String,
-    enum: ["all", "premium"],
+    enum: [
+      "allUsers",
+      "premiumUsers",
+      "freeUsers",
+      "allCustomers",
+      "subscribers",
+    ],
+    required: true, // Kategori zorunlu hale getirildi
   },
   sender: {
     role: {
@@ -29,7 +36,8 @@ const notificationSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "accepted", "rejected"],
+    enum: ["pending", "published", "rejected"],
+    default: "pending",
   },
   rejectionReason: {
     type: String,
@@ -37,6 +45,23 @@ const notificationSchema = new Schema({
       return this.status === "rejected";
     },
   },
+  date: {
+    type: Date,
+    default: Date.now, // Varsayılan olarak şu anki tarih
+  },
+  statusHistory: [
+    {
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "rejected"],
+        required: true,
+      },
+      date: {
+        type: Date,
+        default: Date.now, // Her durum değişikliği için tarih
+      },
+    },
+  ],
 });
 
 const Notification = mongoose.model("Notification", notificationSchema);

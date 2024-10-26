@@ -61,7 +61,14 @@ const PartnerSchema = new Schema({
       },
     },
   ],
+  notifications: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Notification",
+    },
+  ],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
+
 module.exports = Partner;
