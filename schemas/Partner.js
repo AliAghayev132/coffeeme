@@ -67,6 +67,12 @@ const PartnerSchema = new Schema({
       ref: "Notification",
     },
   ],
+  withdraws: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "WithdrawPartner",
+    },
+  ],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
