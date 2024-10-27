@@ -9,6 +9,7 @@ router.get("/", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const admin = await Admin.findOne({ email });
+    
     if (!admin) {
       return res
         .status(400)

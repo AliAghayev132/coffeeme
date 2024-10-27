@@ -6,6 +6,7 @@ const getWithdraws = async (req, res) => {
   try {
     const { email } = req.user;
     const admin = await Admin.findOne({ email });
+    console.log(admin, email);
 
     if (!admin)
       return res
@@ -30,7 +31,15 @@ const updateWithdrawStatus = async (req, res) => {
   try {
     const { email } = req.user;
     const admin = await Admin.findOne({ email });
+    console.log(admin, email);
+
     const { withdrawId, status, rejectedReason } = req.body;
+    console.log({ withdrawId, status, rejectedReason });
+
+    if (!admin)
+      return res
+        .status(404)
+        .json({ message: "Admin not found", success: false });
 
     // Status değerinin geçerli olup olmadığını kontrol et
     if (!["completed", "rejected"].includes(status)) {
