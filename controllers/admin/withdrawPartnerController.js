@@ -1,5 +1,5 @@
 const WithdrawPartner = require("../../schemas/withdraw/WithdrawPartner");
-const Admin = require("../../schemas/withdraw/WithdrawPartner");
+const Admin = require("../../schemas/Admin");
 const Partner = require("../../schemas/Partner");
 
 const getWithdraws = async (req, res) => {
