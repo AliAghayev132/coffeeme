@@ -6,7 +6,6 @@ const getWithdraws = async (req, res) => {
   try {
     const { email } = req.user;
     const admin = await Admin.findOne({ email });
-    console.log(admin, email);
 
     if (!admin)
       return res
@@ -17,6 +16,7 @@ const getWithdraws = async (req, res) => {
       path: "partner",
       select: "username",
     });
+
     return res.status(200).json({
       success: true,
       message: "All withdraws got",
@@ -58,8 +58,13 @@ const updateWithdrawStatus = async (req, res) => {
         .json({ success: false, message: "Withdraw request not found" });
     }
 
-    // Status'e göre işlemleri yap
+    if (withdraw.status !== "pending")
+      return res
+        .status(400)
+        .json({ success: false, message: "Withdraw request already updated" });
+
     if (status === "rejected") {
+      // Status'e göre işlemleri yap
       // Rejected durumunda rejectedReason gerekli
       if (!rejectedReason) {
         return res.status(400).json({
