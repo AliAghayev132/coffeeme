@@ -1,7 +1,7 @@
-const User = require("../../../schemas/User");
-const Partner = require("../../../schemas/Partner");
-const Shop = require("../../../schemas/Shop");
-const { PARTNERS_CONNECTIONS } = require("../../../utils/socket/websokcetUtil");
+const User = require("../../schemas/User");
+const Partner = require("../../schemas/Partner");
+const Shop = require("../../schemas/Shop");
+const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 
 const updateLocation = async (req, res) => {
   try {
@@ -56,7 +56,7 @@ const updateLocation = async (req, res) => {
             lastLocationUpdate: Date.now(),
           });
           await partner.save(); // Partner kaydet
-          
+
           if (PARTNERS_CONNECTIONS[partner._id]) {
             PARTNERS_CONNECTIONS[partner._id].send(
               JSON.stringify({
@@ -95,4 +95,27 @@ const updateLocation = async (req, res) => {
   }
 };
 
-module.exports = { updateLocation };
+const getNotifications = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const user = await User.findOne({ email }).populate({
+      path: "notifications",
+      select: "title message date",
+    });
+
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "Internal server error" });
+
+    return res.status(200).json({
+      message: "All notifications got",
+      success: true,
+      notifications: user.notifications,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { updateLocation, getNotifications };

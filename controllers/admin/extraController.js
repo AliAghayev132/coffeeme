@@ -1,5 +1,6 @@
 const Admin = require("../../schemas/Admin");
 const Notification = require("../../schemas/Notification");
+const User = require("../../schemas/User");
 
 // const getMenu = async (req, res) => {
 //   try {
@@ -110,12 +111,9 @@ const Notification = require("../../schemas/Notification");
 // };
 
 const getPartnerNotifications = async (req, res) => {
-  console.log("Hello");
   try {
-
     const { email } = req.user; // Kullanıcı adını al
     const admin = await Admin.findOne({ email });
-    console.log(admin);
 
     if (!admin) {
       return res
@@ -125,13 +123,7 @@ const getPartnerNotifications = async (req, res) => {
 
     const notifications = await Notification.find({
       "sender.role": "partner",
-    }).populate({
-      path: "sender.id",
-      select: "username", // Sadece username alanını alıyoruz
-      model: "Partner", // Referans modeli belirtiyoruz
     });
-
-    console.log(notifications);
 
     // Partnerin bildirimlerini döndür
     return res.status(200).json({
@@ -146,9 +138,132 @@ const getPartnerNotifications = async (req, res) => {
   }
 };
 
+const updatePartnerNotification = async (req, res) => {
+  try {
+    const { email } = req.user; // Get the admin's email
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+
+    const {
+      notificationId,
+      title,
+      message,
+      rejectionReason,
+      status,
+      category,
+    } = req.body;
+
+    // Check if notificationId is provided
+    if (!notificationId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Notification ID is required" });
+    }
+    const notification = await Notification.findById(notificationId).populate({
+      path: "sender.id", // Populate the partner information from the sender
+      model: "Partner", // The model to populate from
+    });
+
+    const followerIds = notification.sender.id.followers;
+
+    if (!notification) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Notification not found" });
+    }
+
+    // Update notification details
+    notification.title = title || notification.title;
+    notification.message = message || notification.message;
+    notification.rejectionReason =
+      rejectionReason || notification.rejectionReason;
+    notification.category = category || notification.category;
+
+    if (notification.status !== "pending") {
+      return res
+        .status(400)
+        .json({ success: false, message: "This notification already updated" });
+    }
+
+    // Handle sending notifications based on status and category
+    if (status === "rejected") {
+      notification.status = "rejected";
+      notification.statusHistory.push({ status, date: Date.now() });
+      notification.date = Date.now();
+      await notification.save();
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Notification status is rejected. No users will receive this notification.",
+      });
+    } else if (status === "published") {
+      let usersToNotify;
+
+      // Determine which users to notify based on category
+      switch (category) {
+        case "allUsers":
+          usersToNotify = await User.find(); // All users
+          break;
+        case "premiumUsers":
+          usersToNotify = await User.find({ category: "premium" }); // Only premium users
+          break;
+        case "freeUsers":
+          usersToNotify = await User.find({ category: "standard" }); // Only free users
+          break;
+        case "allCustomers":
+          // Assuming all customers are users who follow the partner's shop
+          usersToNotify = await User.find({ follows: notification.shop });
+          break;
+        case "subscribers":
+          usersToNotify = await User.find({ _id: { $in: followerIds } }); // Kullanıcıları bul
+          break;
+        default:
+          return res
+            .status(400)
+            .json({ success: false, message: "Invalid category" });
+      }
+
+      // Notify the users (this part can be expanded based on how notifications are sent)
+
+      for (const user of usersToNotify) {
+        user.notifications.push(notification._id);
+        await user.save();
+      }
+
+      notification.status = status || notification.status;
+      notification.statusHistory.push({ status, date: Date.now() });
+      notification.date = Date.now();
+      await notification.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Notification updated and sent",
+        usersNotified: usersToNotify.length,
+      });
+    }
+
+    return res
+      .status(404)
+      .json({ success: false, message: "bruh fix this after" });
+  } catch (error) {
+    console.error("Error updating partner notification:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the notification",
+    });
+  }
+};
+
 module.exports = {
   // getMenu,
   // getSubscribers,
   // createNewNotification,
+  updatePartnerNotification,
   getPartnerNotifications,
 };

@@ -103,7 +103,9 @@ const userSchema = new Schema(
         },
       },
     ],
+    notifications: [{ type: Schema.Types.ObjectId, ref: "Notification" }],
   },
+
   { versionKey: false }
 );
 

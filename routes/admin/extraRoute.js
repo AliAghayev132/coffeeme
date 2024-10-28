@@ -10,4 +10,10 @@ router.get(
   extraController.getPartnerNotifications
 );
 
+router.put(
+  "/notifications-partner",
+  validateAccessToken,
+  extraController.updatePartnerNotification
+);
+
 module.exports = router;

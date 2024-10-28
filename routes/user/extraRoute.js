@@ -9,7 +9,7 @@ const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
 const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
-const extraController = require("../../controllers/user/extra/extraController");
+const extraController = require("../../controllers/user/extraController");
 
 // Route to get all historical (completed/canceled) orders for the authenticated user
 router.get("/history", validateAccessToken, async (req, res) => {
@@ -190,12 +190,13 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
           }
 
           console.log(user.extraDetails.overAllRating);
-          
 
           user.extraDetails.overAllRating.count += 1;
           user.extraDetails.overAllRating.rating = roundToTwoDecimals(
-            (user.extraDetails.overAllRating.rating * (user.extraDetails.overAllRating.count - 1) + ratingValue) /
-            user.extraDetails.overAllRating.count
+            (user.extraDetails.overAllRating.rating *
+              (user.extraDetails.overAllRating.count - 1) +
+              ratingValue) /
+              user.extraDetails.overAllRating.count
           );
 
           product.rating = roundToTwoDecimals(
@@ -267,4 +268,9 @@ router.put(
   extraController.updateLocation
 );
 
+router.get(
+  "/notifications",
+  validateAccessToken,
+  extraController.getNotifications
+);
 module.exports = router;

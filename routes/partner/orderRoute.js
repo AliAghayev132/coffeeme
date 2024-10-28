@@ -139,6 +139,10 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       partner.orders = partner.orders.filter(
         (orderId) => orderId.toString() !== id
       );
+      if (!partner.customers.includes(user._id)) {
+      partner.customers.push(user._id);
+      }
+
       partner.history.push(order._id);
       partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
       partner.balance += order.totalDiscountedPrice;

@@ -33,6 +33,12 @@ const notificationSchema = new Schema({
         return this.role === "partner";
       },
     },
+    username: {
+      type: String,
+      required: function () {
+        return this.role === "partner";
+      },
+    },
   },
   status: {
     type: String,

@@ -31,7 +31,6 @@ const getMenu = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const getSubscribers = async (req, res) => {
   try {
     const { username } = req.user;
@@ -60,7 +59,6 @@ const getSubscribers = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const createNewNotification = async (req, res) => {
   try {
     const { username } = req.user;
@@ -83,6 +81,7 @@ const createNewNotification = async (req, res) => {
       sender: {
         role: "partner", // Gönderen rolü "partner"
         id: partner._id, // Partnerin ID'si
+        username: partner.username,
       },
       status: "pending", // Varsayılan durum "pending"
       date: Date.now(), // Oluşturulma tarihi
@@ -109,7 +108,6 @@ const createNewNotification = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const getNotifications = async (req, res) => {
   try {
     const { username } = req.user; // Kullanıcı adını al
@@ -135,10 +133,76 @@ const getNotifications = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
+const getCustomers = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const partner = await Partner.findOne({ username }).populate({
+      path: "customers",
+      select:
+        "firstname secondname gender birthdate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
+      populate: [
+        {
+          path: "extraDetails.mostOrderedThreeProducts", // En çok sipariş edilen 3 ürünü ekle
+          select: "name", // Ürün bilgileri
+        },
+        {
+          path: "extraDetails.mostGoingCoffeeShop", // En çok gidilen kafe
+          select: "name", // Kafe bilgileri (gerekirse alanları ayarla)
+        },
+        {
+          path: "history",
+          match: { "rating.product": { $ne: null } }, // rating.product değeri dolu olanları al
+          options: { sort: { createdAt: -1 }, limit: 1 },
+          select: "rating items",
+          populate: {
+            path: "items.product", // Ürün bilgilerini popüle et
+            select: "name", // Yalnızca isim alanını al
+          },
+        },
+      ],
+    });
+    return res.status(200).json({
+      success: true,
+      message: "All customers fetched",
+      customers: partner.customers,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const getCloseUsers = async (req, res) => {
+  try {
+    const { username } = req.user;
+    // const partner = await Partner.findOne({ username }).populate({
+    //   path: "closeUsers",
+    //   select:
+    //     "image firstname lastLocationUpdate.location lastLocationUpdate.date",
+    // });
+
+    const partner = await Partner.findOne({ username }).populate("closeUsers");
+    if (!partner)
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+
+
+    console.log(partner.closeUsers);
+    
+    return res.status(200).json({
+      message: "All close users got",
+      success: true,
+      closeUsers: partner.closeUsers,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   getMenu,
   getSubscribers,
   createNewNotification,
   getNotifications,
+  getCustomers,
+  getCloseUsers,
 };

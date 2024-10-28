@@ -73,6 +73,7 @@ const PartnerSchema = new Schema({
       ref: "WithdrawPartner",
     },
   ],
+  customers: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
