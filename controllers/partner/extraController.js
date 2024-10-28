@@ -89,6 +89,7 @@ const createNewNotification = async (req, res) => {
     });
 
     // Yeni bildirimi veritabanına kaydet
+    newNotification.statusHistory.push({ status: "pending", date: Date.now() });
     await newNotification.save();
 
     // Partnerin notifications dizisine bildirimi ekle
