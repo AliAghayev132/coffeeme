@@ -1,6 +1,7 @@
 const multer = require("multer");
 const User = require("../../schemas/User");
 const path = require("path");
+const fs = require("fs");
 
 const storage = (folderName) =>
   multer.diskStorage({
