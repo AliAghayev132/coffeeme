@@ -15,6 +15,7 @@ const {
 } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
+const accountController = require("../../controllers/user/accountController");
 
 const storage = (folderName) =>
   multer.diskStorage({
@@ -23,7 +24,7 @@ const storage = (folderName) =>
     },
     filename: function (req, file, cb) {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const id = req.user._id || "unknown_user"; // Use the user ID from JWT
+      const id = req.user.email || "unknown_user"; // Use the user ID from JWT
       cb(null, id + "-" + uniqueSuffix + path.extname(file.originalname));
     },
   });
@@ -31,6 +32,7 @@ const upload = multer({
   storage: storage("profile-photos"),
   limits: { fileSize: 1024 * 1024 * 10 }, // Maximum file size: 10MB
 });
+
 // Register
 router.post("/send-otp", async (req, res) => {
   const { email, phone } = req.body;
@@ -75,7 +77,16 @@ router.post("/send-otp", async (req, res) => {
 });
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { email, phone, birthDate, gender, password, otp } = req.body;
+    const {
+      email,
+      phone,
+      birthDate,
+      gender,
+      password,
+      otp,
+      firstname,
+      secondname,
+    } = req.body;
     if (!phone || !email || !birthDate || !gender || !otp) {
       return res.status(400).json({
         error: "All fields are required",
@@ -108,6 +119,8 @@ router.post("/verify-otp", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = User({
+      firstname,
+      secondname,
       phone,
       email,
       birthDate,
@@ -396,33 +409,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
 router.post(
   "/upload-image",
   validateAccessToken, // Middleware to validate JWT and extract user info
-  upload.single("photo"), // Use the field name 'photo'
-  async (req, res) => {
-    try {
-      const { email } = req.user; // JWT'den kullanıcı ID'sini alın
-      const imagePath = req.file.filename; // Dosya yolunu alın
-
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res
-          .status(404)
-          .json({ sucess: false, message: "User not found" });
-      }
-
-      user.image = imagePath;
-      await user.save();
-      user.password = undefined;
-
-      return res
-        .status(201)
-        .json({ sucess: true, message: "Photo Updated Successfully", user });
-    } catch (error) {
-      console.error(error);
-      return res
-        .status(500)
-        .json({ message: "An error occurred while uploading the file" });
-    }
-  }
+  accountController.uploadProfilePhoto
 );
 router.post("/edit-account", validateAccessToken, async (req, res) => {
   try {

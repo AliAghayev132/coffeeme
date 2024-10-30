@@ -1,0 +1,62 @@
+const multer = require("multer");
+const User = require("../../schemas/User");
+const path = require("path");
+
+const storage = (folderName) =>
+  multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, `public/uploads/${folderName}/`);
+    },
+    filename: function (req, file, cb) {
+      cb(null, req.user._id + path.extname(file.originalname));
+    },
+  });
+
+const upload = multer({
+  storage: storage("profile-photos"),
+  limits: { fileSize: 1024 * 1024 * 10 }, // Maksimum dosya boyutu: 10MB
+}).single("photo");
+
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    const { email } = req.user;
+    console.log(email);
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+    console.log(req.body);
+    req.user._id = user._id;
+    console.log("Bura");
+
+    upload(req, res, async (err) => {
+      console.log("Bura2");
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ message: "File upload error" });
+      }
+      console.log("Bura3");
+      // Yükleme başarılıysa, dosya yolu
+      const imagePath = req.file.filename; // Dosya adını al
+      console.log(imagePath);
+      user.image = imagePath; // Kullanıcının görüntüsünü güncelle
+      await user.save(); // Kullanıcıyı kaydet
+      user.password = undefined; // Şifreyi gizle
+
+      console.log(imagePath);
+
+      return res
+        .status(201)
+        .json({ success: true, message: "Photo Updated Successfully", user });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { uploadProfilePhoto };
