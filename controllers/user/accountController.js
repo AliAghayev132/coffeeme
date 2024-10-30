@@ -20,8 +20,6 @@ const upload = multer({
 const uploadProfilePhoto = async (req, res) => {
   try {
     const { email } = req.user;
-    console.log(email);
-
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -29,20 +27,18 @@ const uploadProfilePhoto = async (req, res) => {
         .status(400)
         .json({ success: false, message: "User not found" });
     }
-    console.log(req.body);
     req.user._id = user._id;
-    console.log("Bura");
-
+    const oldImagePath = `public/uploads/profile-photos/${user.image}`;
+    if (user.image && fs.existsSync(oldImagePath)) {
+      fs.unlinkSync(oldImagePath);
+    }
     upload(req, res, async (err) => {
-      console.log("Bura2");
       if (err) {
         console.log(err);
         return res.status(500).json({ message: "File upload error" });
       }
-      console.log("Bura3");
       // Yükleme başarılıysa, dosya yolu
       const imagePath = req.file.filename; // Dosya adını al
-      console.log(imagePath);
       user.image = imagePath; // Kullanıcının görüntüsünü güncelle
       await user.save(); // Kullanıcıyı kaydet
       user.password = undefined; // Şifreyi gizle
