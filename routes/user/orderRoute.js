@@ -35,7 +35,7 @@ router.get("/", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server errro" });
   }
 });
-router.post("/", validateAccessToken, async (req, res) => {
+  router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;

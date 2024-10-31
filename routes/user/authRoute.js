@@ -389,6 +389,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
       user.streak = {
         count: 0,
       };
+      await user.save();
     }
 
     user.password = undefined;

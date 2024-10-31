@@ -9,7 +9,7 @@ const storage = (folderName) =>
       cb(null, `public/uploads/${folderName}/`);
     },
     filename: function (req, file, cb) {
-      cb(null, req.user._id + path.extname(file.originalname));
+      cb(null, req.user._id + Math.random() + path.extname(file.originalname));
     },
   });
 
@@ -43,9 +43,6 @@ const uploadProfilePhoto = async (req, res) => {
       user.image = imagePath; // Kullanıcının görüntüsünü güncelle
       await user.save(); // Kullanıcıyı kaydet
       user.password = undefined; // Şifreyi gizle
-
-      console.log(imagePath);
-
       return res
         .status(201)
         .json({ success: true, message: "Photo Updated Successfully", user });
