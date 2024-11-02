@@ -2,7 +2,7 @@ const express = require("express");
 const validateAccessToken = require("../../middlewares/validateToken");
 const router = express.Router();
 const Partner = require("../../schemas/Partner");
-
+    
 router.get("/history", validateAccessToken, async (req, res) => {
     try {
         const { username } = req.user;

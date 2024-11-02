@@ -26,10 +26,11 @@ router.get("/history", validateAccessToken, async (req, res) => {
         },
         {
           path: "shop", // Populate shop details for each order
-          select: "name logo address", // Select specific fields from the Shop schema
+          select: "name logo address shortAddress", // Select specific fields from the Shop schema
         },
       ],
-      select: "status totalPrice totalDiscountedPrice items shop statusHistory", // Fields to retrieve from the Order schema
+      select:
+        "status totalPrice totalDiscountedPrice items shop statusHistory rating category", // Fields to retrieve from the Order schema
     });
 
     if (!user) {
@@ -219,28 +220,7 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-router.get("/bestsellers", validateAccessToken, async (req, res) => {
-  try {
-    const { email } = req.user;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    const bestSellingProducts = await Product.find()
-      .sort({ rating: -1 })
-      .limit(5);
-
-    return res.status(200).json({
-      success: true,
-      bestSellingProducts,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
+router.get("/bestsellers", validateAccessToken, extraController.getBestSellers);
 router.put("/change-plan", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
@@ -262,6 +242,7 @@ router.put("/change-plan", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 router.put(
   "/update-location",
   validateAccessToken,

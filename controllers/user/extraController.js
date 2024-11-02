@@ -118,4 +118,28 @@ const getNotifications = async (req, res) => {
   }
 };
 
-module.exports = { updateLocation, getNotifications };
+const getBestSellers = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const bestSellingProducts = await Product.find()
+      .sort({ rating: -1 })
+      .limit(5);
+
+    return res.status(200).json({
+      success: true,
+      message: "Best selling products retrieved successfully",
+      bestSellingProducts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { updateLocation, getNotifications, getBestSellers };

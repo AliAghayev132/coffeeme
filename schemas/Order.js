@@ -13,11 +13,16 @@ const orderItemSchema = new Schema({
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
   discount: { type: Number, required: false },
+  type: {
+    type: String,
+    required: true,
+    enum: ["none", "takeaway", "cup", "all"],
+  },
   discountedPrice: { type: Number, required: false },
   size: { type: String, required: true },
   additions: {
     extras: [additionItemSchema],
-    syrups: [additionItemSchema], 
+    syrups: [additionItemSchema],
   },
 });
 const statusHistorySchema = new Schema({

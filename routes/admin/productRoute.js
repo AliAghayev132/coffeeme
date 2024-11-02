@@ -81,11 +81,7 @@ router.post(
         description,
         discountType,
         additions: parsedAdditions, // Ekstraları ekle
-        shop: {
-          id: shop._id,
-          name: shop.name,
-          logo: shop.logo,
-        },
+        shop: shop._id,
         photo: req.file ? req.file.filename : null,
       });
 
@@ -102,7 +98,6 @@ router.post(
     }
   }
 );
-
 router.put(
   "/:id",
   validateAccessToken,
@@ -189,7 +184,6 @@ router.put(
     }
   }
 );
-
 router.delete("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -255,11 +249,4 @@ router.delete(
   }
 );
 
-// router.put("/stock/:id", validateAccessToken, async (req, res) => {
-//   try {
-
-//   } catch (error) {
-
-//   }
-// })
 module.exports = router;

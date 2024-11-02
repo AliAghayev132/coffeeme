@@ -35,10 +35,12 @@ router.get("/", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server errro" });
   }
 });
-  router.post("/", validateAccessToken, async (req, res) => {
+router.post("/", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
+
+    console.log(orderedItems);
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
@@ -224,6 +226,7 @@ router.get("/", validateAccessToken, async (req, res) => {
           category: user.category,
           product: item.productId,
           quantity: item.productCount,
+          type: item.productType,
           price: roundToTwoDecimals(selectedSize.price),
           discount: roundToTwoDecimals(selectedSize.discount),
           discountedPrice: roundToTwoDecimals(selectedSize.discountedPrice),
@@ -321,7 +324,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       return res.status(400).json({ message: "Selected size does not exist" });
     }
 
-  
     const validItems = () => {
       const orderedSyrup = orderedItem.additions.syrups[0];
       const orderedExtra = orderedItem.additions.extras[0];
@@ -363,7 +365,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       (orderedItem.additions.extras[0]
         ? orderedItem.additions.extras[0].discountedPrice
         : 0);
-
 
     const newOrder = new Order({
       user: user._id,

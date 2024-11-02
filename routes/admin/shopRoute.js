@@ -5,7 +5,6 @@ const Product = require("../../schemas/Product");
 const multer = require("multer");
 const fs = require("fs");
 const validateAccessToken = require("../../middlewares/validateToken");
-const calculateWalkingTimes = require("../../utils/calculateWalkingTimes");
 const path = require("path");
 const User = require("../../schemas/User");
 const storage = multer.diskStorage({

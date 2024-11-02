@@ -11,7 +11,7 @@ const storage = (folderName) =>
     filename: function (req, file, cb) {
       cb(null, req.user._id + Math.random() + path.extname(file.originalname));
     },
-  });
+});
 
 const upload = multer({
   storage: storage("profile-photos"),

@@ -22,9 +22,15 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
       .populate({
         path: "favorites.products", // Populate favorite products
         select: "_id name photo rating sizes shop", // Include shop data
+        populate: {
+          path: "shop.id", // Shop alanını populate et
+          select: "_id name logo shortAddress", // Shop için istenen alanlar
+          model: "Shop",
+          options: { as: "shop" },
+        },
       });
 
-    console.log(user.favorites.shops);
+    console.log(user.favorites.products);
 
     if (!user) {
       return res
@@ -143,7 +149,7 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
     // Find the user and populate the recent searched items
     const user = await User.findOne({ email }).populate({
       path: "recentSearched.item", // Populate either Shop or Product depending on the itemType
-      select: "_id name address photo rating rayting sizes logo shop", // Include shop ID in products
+      select: "_id name address shortAddress photo rating sizes logo shop", // Include shop ID in products
     });
 
     if (!user) {
@@ -164,20 +170,25 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
             _id: item._id,
             name: item.name,
             address: item.address,
+            shortAddress: item.shortAddress,
             rating: item.rating,
             photo: item.photo,
             logo: item.logo, // Include shop's logo
             itemType: "Shop",
           };
         } else if (search.itemType === "Product") {
+          console.log(item.shop);
           return {
             _id: item._id,
             name: item.name,
             photo: item.photo,
-            rayting: item.rayting,
+            rating: item.rating,
             discount: item.sizes.length > 0 ? item.sizes[0].discount : 0, // Get discount from first size
-            price: item.sizes.length > 0 ? item.sizes[0].discountedPrice : 0,
+            discountedPrice:
+              item.sizes.length > 0 ? item.sizes[0].discountedPrice : 0,
+            price: item.sizes.length > 0 ? item.sizes[0].price : 0,
             shop: {
+              shortAddress: item.shop.shortAddress,
               name: item.shop.name,
               id: item.shop.id,
             }, // Include the shop ID for products
@@ -211,12 +222,12 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
     // Perform a case-insensitive search for shops and products by name
     const shops = await Shop.find({
       name: { $regex: query, $options: "i" }, // Case-insensitive match
-    }).select("_id name rating address logo photo");
+    }).select("_id name rating address shortAddress logo photo");
 
     const products = await Product.find({
       name: { $regex: query, $options: "i" }, // Case-insensitive match
     })
-      .select("_id name photo rayting sizes shop")
+      .select("_id name photo rating sizes shop")
       .populate({
         path: "shop",
         select: "_id name logo", // Populate the shop details for products
@@ -228,9 +239,11 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
       _id: product._id,
       name: product.name,
       photo: product.photo,
-      rayting: product.rayting,
+      rating: product.rating,
       discount: product.sizes.length > 0 ? product.sizes[0].discount : 0, // Get discount from first size
-      price: product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
+      discountedPrice:
+        product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
+      price: product.sizes.length > 0 ? product.sizes[0].price : 0,
       shop: {
         id: product.shop.id, // Include shop ID
         name: product.shop.name, // Include shop name

@@ -57,21 +57,7 @@ const productSchema = new Schema({
     enum: ["none", "takeaway", "cup", "all"],
     default: "none",
   },
-  shop: {
-    id: {
-      type: Schema.Types.ObjectId,
-      ref: "Shop",
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    logo: {
-      type: String,
-      required: true,
-    },
-  },
+  shop: { type: Schema.Types.ObjectId, ref: "Shop", required: true },
   description: {
     type: String,
     required: false,
