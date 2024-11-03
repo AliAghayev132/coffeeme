@@ -9,7 +9,7 @@ const shopSchema = new Schema({
   },
   shortAddress: {
     type: String,
-    required: true,
+    default: "",
   },
   name: {
     type: String,

@@ -40,7 +40,6 @@ router.post("/", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
 
-    console.log(orderedItems);
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
@@ -70,7 +69,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
       );
-      if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
+      if (!product || product.shop.toString() !== reqShop.id) {
         return false;
       }
 
@@ -290,6 +289,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
     const { orderedItem, shop: reqShop, message } = req.body; // Changed to orderedItem for a single item
     const { email } = req.user;
 
+    
     // Validate the presence of orderedItem
     if (!orderedItem) {
       return res.status(400).json({ message: "No ordered item provided" });
@@ -313,7 +313,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
     }
 
     const product = await Product.findById(orderedItem.productId); // Fetch single product
-    if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
+    if (!product || product.shop.toString() !== reqShop.id) {
       return res.status(400).json({ message: "Invalid product or shop" });
     }
 
@@ -372,6 +372,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         {
           category: user.category,
           product: orderedItem.productId,
+          type:orderedItem.productType,
           quantity: orderedItem.productCount || 1,
           price: roundToTwoDecimals(totalPrice),
           discount: roundToTwoDecimals(selectedSize.discount),
@@ -434,7 +435,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       );
     }
 
-    console.log(savedOrder);
 
     return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
@@ -446,6 +446,7 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shop: reqShop } = req.body;
     const { email } = req.user;
+    
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
@@ -470,12 +471,13 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
 
     const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
-
+    
     const validItems = orderedItems.every((item) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
       );
-      if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
+      
+      if (!product || product.shop.toString() !== reqShop.id) {
         return false;
       }
 
@@ -581,8 +583,6 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
 });
 router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
   try {
-    console.log("Bura");
-
     const { orderedItem, shop: reqShop } = req.body; // Expecting a single item
     const { email } = req.user;
 
@@ -625,7 +625,7 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
     const product = await Product.findById(productId);
 
     // Validate the product and size
-    if (!product || product.shop.id.toString() !== reqShop.id.toString()) {
+    if (!product || product.shop.toString() !== reqShop.id) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid product for this shop" });

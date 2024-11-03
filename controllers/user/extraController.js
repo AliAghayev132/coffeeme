@@ -1,13 +1,13 @@
 const User = require("../../schemas/User");
 const Partner = require("../../schemas/Partner");
 const Shop = require("../../schemas/Shop");
+const Product = require("../../schemas/Product");
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
     const { latitude, longitude } = req.body;
-    console.log({ latitude, longitude });
 
     if (!latitude || !longitude) {
       return res
@@ -129,6 +129,10 @@ const getBestSellers = async (req, res) => {
     }
 
     const bestSellingProducts = await Product.find()
+      .populate({
+        path: "shop",
+        select: "name shortAddress",
+      })
       .sort({ rating: -1 })
       .limit(5);
 

@@ -43,16 +43,18 @@ const userSchema = new Schema(
       },
       default: null, // Default to null
     },
-    recentSearched: [
-      {
-        item: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          refPath: "recentSearched.itemType",
+    recentSearched: {
+      shops: [
+        {
+          item: { type: Schema.Types.ObjectId, ref: "Shop", required: true },
         },
-        itemType: { type: String, required: true, enum: ["Shop", "Product"] }, // Reference to either Shop or Product
-      },
-    ],
+      ],
+      products: [
+        {
+          item: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        },
+      ],
+    },
     lastLocationUpdate: {
       date: {
         type: Date,

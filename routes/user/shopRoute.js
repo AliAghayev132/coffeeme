@@ -30,8 +30,6 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
         },
       });
 
-    console.log(user.favorites.products);
-
     if (!user) {
       return res
         .status(404)
@@ -146,11 +144,20 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user; // Extract user info from JWT
 
-    // Find the user and populate the recent searched items
-    const user = await User.findOne({ email }).populate({
-      path: "recentSearched.item", // Populate either Shop or Product depending on the itemType
-      select: "_id name address shortAddress photo rating sizes logo shop", // Include shop ID in products
-    });
+    // Find the user and populate recent searched items
+    const user = await User.findOne({ email })
+      .populate({
+        path: "recentSearched.shops.item", // Populate shop items
+        select: "_id name address shortAddress rating photo logo",
+      })
+      .populate({
+        path: "recentSearched.products.item", // Populate product items
+        select: "_id name photo rating sizes shop",
+        populate: {
+          path: "shop", // Nested populate for shop info in products
+          select: "shortAddress name", // Select specific fields from shop
+        },
+      });
 
     if (!user) {
       return res
@@ -158,45 +165,45 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Map through recentSearched array to properly format response
-    const recentSearches = user.recentSearched
-      .map((search) => {
+    // Format the recent searches
+    const recentSearches = [
+      ...user.recentSearched.shops.map((search) => {
         const item = search.item;
         if (!item) return null; // If the item is missing, return null
 
-        // Format based on item type (Shop or Product)
-        if (search.itemType === "Shop") {
-          return {
-            _id: item._id,
-            name: item.name,
-            address: item.address,
-            shortAddress: item.shortAddress,
-            rating: item.rating,
-            photo: item.photo,
-            logo: item.logo, // Include shop's logo
-            itemType: "Shop",
-          };
-        } else if (search.itemType === "Product") {
-          console.log(item.shop);
-          return {
-            _id: item._id,
-            name: item.name,
-            photo: item.photo,
-            rating: item.rating,
-            discount: item.sizes.length > 0 ? item.sizes[0].discount : 0, // Get discount from first size
-            discountedPrice:
-              item.sizes.length > 0 ? item.sizes[0].discountedPrice : 0,
-            price: item.sizes.length > 0 ? item.sizes[0].price : 0,
-            shop: {
-              shortAddress: item.shop.shortAddress,
-              name: item.shop.name,
-              id: item.shop.id,
-            }, // Include the shop ID for products
-            itemType: "Product",
-          };
-        }
-      })
-      .filter(Boolean); // Remove any null values
+        return {
+          _id: item._id,
+          name: item.name,
+          address: item.address,
+          shortAddress: item.shortAddress,
+          rating: item.rating,
+          photo: item.photo,
+          logo: item.logo, // Include shop's logo
+          itemType: "Shop",
+        };
+      }),
+      ...user.recentSearched.products.map((search) => {
+        const item = search.item;
+        if (!item) return null; // If the item is missing, return null
+
+        return {
+          _id: item._id,
+          name: item.name,
+          photo: item.photo,
+          rating: item.rating,
+          discount: item.sizes.length > 0 ? item.sizes[0].discount : 0, // Get discount from first size
+          discountedPrice:
+            item.sizes.length > 0 ? item.sizes[0].discountedPrice : 0,
+          price: item.sizes.length > 0 ? item.sizes[0].price : 0,
+          shop: item.shop ? { // Include shop details if available
+            _id: item.shop._id,
+            name: item.shop.name,
+            shortAddress: item.shop.shortAddress,
+          } : null,
+          itemType: "Product",
+        };
+      }),
+    ].filter(Boolean); // Remove any null values
 
     return res.status(200).json({
       success: true,
@@ -227,10 +234,10 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
     const products = await Product.find({
       name: { $regex: query, $options: "i" }, // Case-insensitive match
     })
-      .select("_id name photo rating sizes shop")
+      .select("_id name photo rating sizes")
       .populate({
         path: "shop",
-        select: "_id name logo", // Populate the shop details for products
+        select: "name logo shortAddress", // Populate the shop details for products
       });
 
     // Format the products to include shop details
@@ -244,11 +251,7 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
       discountedPrice:
         product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
       price: product.sizes.length > 0 ? product.sizes[0].price : 0,
-      shop: {
-        id: product.shop.id, // Include shop ID
-        name: product.shop.name, // Include shop name
-        logo: product.shop.logo, // Include shop logo
-      },
+      shop: product.shop,
     }));
 
     // Return both shops and products in the response
@@ -287,24 +290,23 @@ router.post("/search/clicked", validateAccessToken, async (req, res) => {
     }
 
     // Check if the item is already in recentSearched
-    const alreadySearched = user.recentSearched.some(
-      (search) =>
-        search.item.toString() === itemId && search.itemType === itemType
+    const alreadySearched = user.recentSearched[itemType.toLowerCase() + 's'].some(
+      (search) => search.item.toString() === itemId
     );
 
     // If already searched, move it to the front (remove and add again)
     if (alreadySearched) {
-      user.recentSearched = user.recentSearched.filter(
-        (search) =>
-          search.item.toString() !== itemId || search.itemType !== itemType
+      user.recentSearched[itemType.toLowerCase() + 's'] = user.recentSearched[itemType.toLowerCase() + 's'].filter(
+        (search) => search.item.toString() !== itemId
       );
     }
 
-    // Add the new item at the beginning of the array
-    user.recentSearched.unshift({ item: itemId, itemType });
+    // Add the new item at the beginning of the respective array
+    user.recentSearched[itemType.toLowerCase() + 's'].unshift({ item: itemId });
 
-    if (user.recentSearched.length > 5) {
-      user.recentSearched.pop();
+    // Limit to 5 items in each array
+    if (user.recentSearched[itemType.toLowerCase() + 's'].length > 5) {
+      user.recentSearched[itemType.toLowerCase() + 's'].pop();
     }
 
     // Save the updated user

@@ -220,7 +220,8 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-router.get("/bestsellers", validateAccessToken, extraController.getBestSellers);
+
+// For Testing
 router.put("/change-plan", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
@@ -233,7 +234,12 @@ router.put("/change-plan", validateAccessToken, async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    user.category = category;
+    if (category !== "loyalty") {
+      user.category = category;
+    } else {
+      user.loyalty = 10;
+      user.category = "standard";
+    }
     await user.save();
     return res.status(200).json({
       success: true,
@@ -242,13 +248,15 @@ router.put("/change-plan", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
+// Best Sellers
+router.get("/bestsellers", validateAccessToken, extraController.getBestSellers);
+// Update Location
 router.put(
   "/update-location",
   validateAccessToken,
   extraController.updateLocation
 );
-
+// Notifications
 router.get(
   "/notifications",
   validateAccessToken,
