@@ -40,7 +40,6 @@ router.post("/", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
 
-
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
@@ -289,7 +288,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
     const { orderedItem, shop: reqShop, message } = req.body; // Changed to orderedItem for a single item
     const { email } = req.user;
 
-    
     // Validate the presence of orderedItem
     if (!orderedItem) {
       return res.status(400).json({ message: "No ordered item provided" });
@@ -372,7 +370,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         {
           category: user.category,
           product: orderedItem.productId,
-          type:orderedItem.productType,
+          type: orderedItem.productType,
           quantity: orderedItem.productCount || 1,
           price: roundToTwoDecimals(totalPrice),
           discount: roundToTwoDecimals(selectedSize.discount),
@@ -435,7 +433,6 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       );
     }
 
-
     return res.status(201).json({ message: "Order saved", savedOrder });
   } catch (error) {
     console.error(error);
@@ -446,7 +443,6 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
   try {
     const { orderedItems, shop: reqShop } = req.body;
     const { email } = req.user;
-    
 
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
@@ -471,12 +467,12 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
 
     const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
-    
+
     const validItems = orderedItems.every((item) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
       );
-      
+
       if (!product || product.shop.toString() !== reqShop.id) {
         return false;
       }

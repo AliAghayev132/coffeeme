@@ -23,10 +23,8 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
         path: "favorites.products", // Populate favorite products
         select: "_id name photo rating sizes shop", // Include shop data
         populate: {
-          path: "shop.id", // Shop alanını populate et
-          select: "_id name logo shortAddress", // Shop için istenen alanlar
-          model: "Shop",
-          options: { as: "shop" },
+          path: "shop", // Shop alanını populate et
+          select: "name logo shortAddress", // Shop için istenen alanlar
         },
       });
 
@@ -64,6 +62,8 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
       favoriteProducts,
     });
   } catch (error) {
+    console.log(error);
+    
     return res
       .status(500)
       .json({ success: false, message: "Server error", error });

@@ -7,7 +7,7 @@ const {
   USERS_CONNECTIONS, // Import the USER_CONNECTIONS
 } = require("../socket/websokcetUtil");
 
-const EXPIRATION_TIME_MINS = 5;
+const EXPIRATION_TIME_MINS = 1;
 
 const cancelExpiredOrders = async () => {
   try {
@@ -27,7 +27,6 @@ const cancelExpiredOrders = async () => {
         select: "name", // Sadece gerekli alanları seçiyoruz
       });
 
-    console.log({ expiredOrders });
     if (expiredOrders.length) console.log("Expired Orders:", expiredOrders);
 
     // Process each expired order
@@ -37,7 +36,7 @@ const cancelExpiredOrders = async () => {
     for (const order of expiredOrders) {
       userPromises.push(handleUserHistory(order));
       partnerPromises.push(handlePartnerHistory(order));
-      updateOrderStatus(order._id);
+      await updateOrderStatus(order._id);
     }
 
     await Promise.all(userPromises);
@@ -50,8 +49,6 @@ const cancelExpiredOrders = async () => {
 const handleUserHistory = async (order) => {
   try {
     const user = await User.findById(order.user);
-    console.log({ order });
-    console.log({ items: order.items });
     if (!user) return;
     user.orders = user.orders.filter(
       (o) => o.toString() !== order._id.toString()
@@ -65,6 +62,13 @@ const handleUserHistory = async (order) => {
       user.loyalty = 10;
     } else {
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+      console.log(
+        { refundAmount },
+        order.totalDiscountedPrice || order.totalPrice,
+        { order }
+      );
+
+      console.log("Balance", user.balance);
       user.balance += refundAmount;
     }
 
