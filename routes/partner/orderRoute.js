@@ -9,6 +9,23 @@ const {
   USERS_CONNECTIONS,
 } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
+const mailSender = require("../../utils/mailsender");
+
+async function sendOrderDetails(email, data) {
+  try {
+    const mailResponse = await mailSender(
+      email,
+      "Sifariş mk",
+      `<h1>
+        ${data.totalPrice} 
+        ${data.totalDiscountedPrice}
+      </h1>`
+    );
+  } catch (error) {
+    console.log("Error occurred while sending email: ", error);
+    throw error;
+  }
+}
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
@@ -135,12 +152,16 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     // If order status is delivered, update partner and user history
     let delivered = null;
     if (status === "delivered") {
+      sendOrderDetails(user.email, {
+        totalPrice: order.totalPrice,
+        totalDiscountedPrice: order.totalDiscountedPrice,
+      });
       delivered = "DELIVERED";
       partner.orders = partner.orders.filter(
         (orderId) => orderId.toString() !== id
       );
       if (!partner.customers.includes(user._id)) {
-      partner.customers.push(user._id);
+        partner.customers.push(user._id);
       }
 
       partner.history.push(order._id);

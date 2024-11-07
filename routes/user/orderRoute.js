@@ -221,7 +221,6 @@ router.post("/", validateAccessToken, async (req, res) => {
           }) || [];
 
         return {
-          category: user.category,
           product: item.productId,
           quantity: item.productCount,
           type: item.productType,
@@ -235,6 +234,7 @@ router.post("/", validateAccessToken, async (req, res) => {
           },
         };
       }),
+      category,
       shop: reqShop.id,
       totalPrice,
       totalDiscountedPrice,
@@ -679,6 +679,34 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error during checkout", error });
+  }
+});
+router.post("/again/:id", validateAccessToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.user;
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const order = await Order.findById(id)
+      .populate({
+        path: "items.product", // Populate 'product' in each 'items' entry
+      })
+      .populate({
+        path: "shop",
+        populate: {
+          path: "products", // Assuming 'products' is an array of product references in the Shop schema
+        },
+      });
+
+    console.log(order);
+
+    return res.status(200).json({ success: true, message: "Oops zort", order });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

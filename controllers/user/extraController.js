@@ -3,6 +3,23 @@ const Partner = require("../../schemas/Partner");
 const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const mailSender = require("../../utils/mailsender");
+
+async function sendOrderDetails(email, data) {
+  try {
+    const mailResponse = await mailSender(
+      email,
+      "Order Details",
+      `<h1>
+        ${data.totalPrice} 
+        ${data.totalDiscountedPrice}
+      </h1>`
+    );
+  } catch (error) {
+    console.log("Error occurred while sending email: ", error);
+    throw error;
+  }
+}
 
 const updateLocation = async (req, res) => {
   try {
@@ -146,4 +163,34 @@ const getBestSellers = async (req, res) => {
   }
 };
 
-module.exports = { updateLocation, getNotifications, getBestSellers };
+const sendInvoice = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { id } = req.params;
+    const user = await User.findOne({
+      email,
+    }).populate("history");
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    const order = user.history.find((item) => item._id == id);
+    sendOrderDetails(user.email, order);
+    return res.status(200).json({
+      success: true,
+      message: "Invoice sended successfully",
+      order: order,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  updateLocation,
+  getNotifications,
+  getBestSellers,
+  sendInvoice,
+};

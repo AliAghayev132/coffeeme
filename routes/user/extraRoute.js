@@ -22,7 +22,7 @@ router.get("/history", validateAccessToken, async (req, res) => {
       populate: [
         {
           path: "items.product", // Populate product details in each order
-          select: "name price photo", // Select specific fields from the Product schema
+          select: "name price photo shop sizes", // Select specific fields from the Product schema
         },
         {
           path: "shop", // Populate shop details for each order
@@ -262,4 +262,11 @@ router.get(
   validateAccessToken,
   extraController.getNotifications
 );
+
+router.post(
+  "/send-invoice/:id",
+  validateAccessToken,
+  extraController.sendInvoice
+);
+
 module.exports = router;
