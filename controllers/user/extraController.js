@@ -114,24 +114,50 @@ const updateLocation = async (req, res) => {
 
 const getNotifications = async (req, res) => {
   try {
-    const { email } = req.user;
-    const user = await User.findOne({ email }).populate({
+    // Kullanıcıyı bulalım ve bildirimleri alalım
+    const user = await User.findOne({ email: req.user.email }).populate({
       path: "notifications",
-      select: "title message date",
+      populate: {
+        path: "sender",
+        select: "role id", // sender rolü ve id bilgisi
+      },
     });
 
-    if (!user)
+    if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "Internal server error" });
+        .json({ success: false, message: "User not found" });
+    }
 
-    return res.status(200).json({
-      message: "All notifications got",
-      success: true,
-      notifications: user.notifications,
-    });
+    // Bildirimleri düzenleyelim
+    const notifications = await Promise.all(
+      user.notifications.map(async (notification) => {
+        // Eğer bildirim bir partner tarafından gönderildiyse, shop bilgilerini ekleyelim
+        if (notification.sender.role === "partner") {
+          // Partner'in id'sini kullanarak partneri bulalım
+          const partner = await Partner.findById(
+            notification.sender.id
+          ).populate("shop", "_id name logo address");
+    
+          // Partner ve shop varsa, bildirim objesine shop ekleyelim
+          if (partner && partner.shop) {
+            // Burada notification'a shop ekliyoruz
+            return {
+              ...notification.toObject(), // notification'ı düz bir nesneye çeviriyoruz
+              shop: partner.shop,          // shop bilgisini ekliyoruz
+            };
+          }
+        }
+        // Eğer shop bilgisi eklenmediyse, bildirim objesini olduğu gibi döndürüyoruz
+        return notification.toObject();
+      })
+    );
+
+    // Tüm bildirimleri döndürelim
+    return res.status(200).json({ success: true, notifications });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
