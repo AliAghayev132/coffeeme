@@ -21,7 +21,7 @@ const cancelExpiredOrders = async () => {
     })
       .populate({
         path: "shop",
-        select: "name",
+        select: "name shortAddress",
       })
       .populate({
         path: "items.product", // items dizisindeki her bir ürün
@@ -65,7 +65,7 @@ const handleUserHistory = async (order) => {
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
       balanceActivity(user, {
         category: "refund",
-        title: `${shop.name} ${shop.shortAddress}`,
+        title: `${order.shop.name} ${order.shop.shortAddress}`,
         amount: order.totalDiscountedPrice,
       });
       user.balance += refundAmount;
