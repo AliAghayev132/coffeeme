@@ -163,9 +163,11 @@ router.put("/:id", validateAccessToken, async (req, res) => {
             rewardGiven: true,
           },
           { new: true }
-        );
+        ).populate("referrerUserId");
 
         if (referral) user.balance += 1;
+        if (referral.referrerUserId) referral.referrerUserId.balance += 1;
+        await referral.referrerUserId.save();
       }
       sendOrderDetails(user.email, {
         totalPrice: order.totalPrice,
