@@ -154,20 +154,24 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     let delivered = null;
     if (status === "delivered") {
       if (user.extraDetails.referredBy) {
-        const referral = await Referral.findOneAndUpdate(
-          {
-            referredUserId: user._id,
-            rewardGiven: false,
-          },
-          {
-            rewardGiven: true,
-          },
-          { new: true }
-        ).populate("referrerUserId");
+        try {
+          const referral = await Referral.findOneAndUpdate(
+            {
+              referredUserId: user._id,
+              rewardGiven: false,
+            },
+            {
+              rewardGiven: true,
+            },
+            { new: true }
+          ).populate("referrerUserId");
 
-        if (referral) user.balance += 1;
-        if (referral.referrerUserId) referral.referrerUserId.balance += 1;
-        await referral.referrerUserId.save();
+          if (referral) user.balance += 1;
+          if (referral.referrerUserId) referral.referrerUserId.balance += 1;
+          await referral.referrerUserId.save();
+        } catch (error) {
+          console.log(error);
+        }
       }
       sendOrderDetails(user.email, {
         totalPrice: order.totalPrice,
