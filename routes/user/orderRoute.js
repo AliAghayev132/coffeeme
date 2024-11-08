@@ -8,6 +8,7 @@ const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
+const balanceActivity = require("../../utils/user/balanceActivity");
 
 router.get("/", validateAccessToken, async (req, res) => {
   try {
@@ -47,8 +48,6 @@ router.post("/", validateAccessToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-
 
     const { category } = user;
 
@@ -253,6 +252,12 @@ router.post("/", validateAccessToken, async (req, res) => {
 
     user.balance -= totalDiscountedPrice;
     const savedOrder = await newOrder.save();
+    balanceActivity(user, {
+      category: "order",
+      title: `${shop.name} ${shop.shortAddress}`,
+      amount: newOrder.totalDiscountedPrice,
+    });
+
     await user.save();
 
     await User.findOneAndUpdate(

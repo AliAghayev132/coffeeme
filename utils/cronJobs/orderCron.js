@@ -8,6 +8,7 @@ const {
 } = require("../socket/websokcetUtil");
 
 const EXPIRATION_TIME_MINS = 1;
+const balanceActivity = require("../user/balanceActivity");
 
 const cancelExpiredOrders = async () => {
   try {
@@ -62,13 +63,11 @@ const handleUserHistory = async (order) => {
       user.loyalty = 10;
     } else {
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
-      console.log(
-        { refundAmount },
-        order.totalDiscountedPrice || order.totalPrice,
-        { order }
-      );
-
-      console.log("Balance", user.balance);
+      balanceActivity(user, {
+        category: "refund",
+        title: `${shop.name} ${shop.shortAddress}`,
+        amount: order.totalDiscountedPrice,
+      });
       user.balance += refundAmount;
     }
 

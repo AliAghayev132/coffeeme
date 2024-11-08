@@ -11,6 +11,7 @@ const {
 } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
+const balanceActivity = require("../../utils/user/balanceActivity");
 
 async function sendOrderDetails(email, data) {
   try {
@@ -168,6 +169,11 @@ router.put("/:id", validateAccessToken, async (req, res) => {
 
           if (referral) user.balance += 1;
           if (referral.referrerUserId) referral.referrerUserId.balance += 1;
+          balanceActivity(user, {
+            category: "refer",
+            title: `Refer a friend - ${referral.referrerUserId.firstname}`,
+            amount: 1,
+          });
           await referral.referrerUserId.save();
         } catch (error) {
           console.log(error);
@@ -234,6 +240,11 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       user.history.push(order._id);
 
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+      balanceActivity(user, {
+        category: "refund",
+        title: `${shop.name} ${shop.shortAddress}`,
+        amount: order.totalDiscountedPrice,
+      });
       user.balance += refundAmount;
     }
 
