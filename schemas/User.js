@@ -80,6 +80,14 @@ const userSchema = new Schema(
           default: 0,
         },
       },
+      referralCode: {
+        type: String,
+      },
+      referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
     },
     visitedCoffeeShops: [
       {
@@ -110,6 +118,8 @@ const userSchema = new Schema(
 
   { versionKey: false }
 );
+
+userSchema.index({ "extraDetails.referralCode": 1 }, { unique: true });
 
 // Pre-save middleware to track category changes and ensure uniqueness
 userSchema.pre("save", function (next) {

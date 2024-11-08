@@ -2,6 +2,8 @@ const User = require("../../schemas/User");
 const Partner = require("../../schemas/Partner");
 const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
+const Referral = require("../../schemas/user/Referral");
+
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const mailSender = require("../../utils/mailsender");
 
@@ -20,7 +22,6 @@ async function sendOrderDetails(email, data) {
     throw error;
   }
 }
-
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
@@ -111,7 +112,6 @@ const updateLocation = async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 };
-
 const getNotifications = async (req, res) => {
   try {
     // Kullanıcıyı bulalım ve bildirimleri alalım
@@ -138,13 +138,13 @@ const getNotifications = async (req, res) => {
           const partner = await Partner.findById(
             notification.sender.id
           ).populate("shop", "_id name logo address");
-    
+
           // Partner ve shop varsa, bildirim objesine shop ekleyelim
           if (partner && partner.shop) {
             // Burada notification'a shop ekliyoruz
             return {
               ...notification.toObject(), // notification'ı düz bir nesneye çeviriyoruz
-              shop: partner.shop,          // shop bilgisini ekliyoruz
+              shop: partner.shop, // shop bilgisini ekliyoruz
             };
           }
         }
@@ -160,7 +160,6 @@ const getNotifications = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 const getBestSellers = async (req, res) => {
   try {
     const { email } = req.user;
@@ -188,7 +187,6 @@ const getBestSellers = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const sendInvoice = async (req, res) => {
   try {
     const { email } = req.user;
@@ -213,10 +211,63 @@ const sendInvoice = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const referAFriend = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const { code } = req.body;
+    const user = await User.findOne({
+      email,
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.extraDetails.referredBy) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You already referred" });
+    }
+
+    if (user.extraDetails.referralCode == code) {
+      return res
+        .status(400)
+        .json({ success: false, message: "You can't refer yourself" });
+    }
+
+    const referrerUser = await User.findOne({
+      "extraDetails.referralCode": code, // Corrected field name
+    });
+
+    if (!referrerUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const referral = new Referral({
+      referredUserId: user._id,
+      referrerUserId: referrerUser._id,
+    });
+
+    user.extraDetails.referredBy = referrerUser._id;
+    await user.save();
+    await referral.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Your referral code worked", referral });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   updateLocation,
   getNotifications,
   getBestSellers,
   sendInvoice,
+  referAFriend,
 };

@@ -262,11 +262,17 @@ router.get(
   validateAccessToken,
   extraController.getNotifications
 );
-
+// Send Invoice
 router.post(
   "/send-invoice/:id",
   validateAccessToken,
   extraController.sendInvoice
+);
+// Refer a friend
+router.post(
+  "/refer-a-friend",
+  validateAccessToken,
+  extraController.referAFriend
 );
 
 module.exports = router;

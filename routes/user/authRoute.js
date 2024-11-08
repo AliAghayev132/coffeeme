@@ -16,6 +16,7 @@ const {
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const checkStreak = require("../../utils/user/checkStreak");
 const accountController = require("../../controllers/user/accountController");
+const generateUniqueReferenceCode = require("../../utils/referenceCodeGenerator");
 
 const storage = (folderName) =>
   multer.diskStorage({
@@ -118,6 +119,16 @@ router.post("/verify-otp", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let referralCode = null;
+    let existingUser = null;
+
+    do {
+      referralCode = generateUniqueReferenceCode();
+      existingUser = await User.findOne({
+        "extraDetails.referralCode": referralCode,
+      });
+    } while (existingUser);
+
     const newUser = User({
       firstname,
       secondname,
@@ -125,6 +136,9 @@ router.post("/verify-otp", async (req, res) => {
       email,
       birthDate,
       gender,
+      extraDetails: {
+        referralCode, // Unique referral code oluşturun
+      },
       password: hashedPassword,
     });
 
@@ -287,7 +301,11 @@ router.post("/forgot-password-confirm", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { password, email } = req.body;
+    console.log({ email });
+
     const user = await User.findOne({ email }).lean();
+    console.log(user);
+
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
@@ -379,6 +397,7 @@ router.post("/refresh-token", async (req, res) => {
 router.get("/user", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
+
     const user = await User.findOne({ email });
     if (!user) {
       return res
