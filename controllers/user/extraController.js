@@ -247,6 +247,12 @@ const referAFriend = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
+    if (referrerUser.extraDetails.referredBy === user._id) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" }); //sonra fixle
+    }
+
     const referral = new Referral({
       referredUserId: user._id,
       referrerUserId: referrerUser._id,

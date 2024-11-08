@@ -43,11 +43,13 @@ router.post("/", validateAccessToken, async (req, res) => {
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+
+
     const { category } = user;
 
     if (user.orders.length >= 3) {

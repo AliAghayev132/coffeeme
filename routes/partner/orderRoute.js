@@ -3,6 +3,7 @@ const router = express.Router();
 const Partner = require("../../schemas/Partner");
 const Order = require("../../schemas/Order");
 const User = require("../../schemas/User");
+const Referral = require("../../schemas/user/Referral");
 const validateAccessToken = require("../../middlewares/validateToken");
 const {
   PARTNERS_CONNECTIONS,
@@ -152,6 +153,20 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     // If order status is delivered, update partner and user history
     let delivered = null;
     if (status === "delivered") {
+      if (user.extraDetails.referredBy) {
+        const referral = await Referral.findOneAndUpdate(
+          {
+            referredUserId: user._id,
+            rewardGiven: false,
+          },
+          {
+            rewardGiven: true,
+          },
+          { new: true }
+        );
+
+        if (referral) user.balance += 1;
+      }
       sendOrderDetails(user.email, {
         totalPrice: order.totalPrice,
         totalDiscountedPrice: order.totalDiscountedPrice,
