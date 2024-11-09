@@ -53,7 +53,7 @@ const userSchema = new Schema(
     history: [{ type: Schema.Types.ObjectId, ref: "Order" }], // Canceled/Finished orders
     streak: {
       count: { type: Number, default: 0 },
-      lastOrderDate: { type: Date },
+      lastOrderDate: { type: Date, default: Date.now() },
     },
     fingerTips: {
       type: {

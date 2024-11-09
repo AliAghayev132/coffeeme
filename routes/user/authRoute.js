@@ -14,7 +14,7 @@ const {
   validatePassword,
 } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
-const {checkStreak} = require("../../utils/user/checkStreak");
+const { checkStreak } = require("../../utils/user/checkStreak");
 const accountController = require("../../controllers/user/accountController");
 const generateUniqueReferenceCode = require("../../utils/referenceCodeGenerator");
 
@@ -409,6 +409,8 @@ router.get("/user", validateAccessToken, async (req, res) => {
 
     if (user.streak.count >= 7 && user.category !== "premium") {
       user.category = "streakPremium";
+    } else if (user.category !== "premium") {
+      user.category = "standard";
     }
 
     await user.save();
