@@ -441,6 +441,7 @@ router.get("/follow", validateAccessToken, async (req, res) => {
           rating: shop.rating,
           photo: shop.photo,
           address: shop.address,
+          shortAddress: shop.shortAddress,
           percentage: partner ? partner.shopPercentage : null, // Include percentage if found, otherwise null
         };
       })
