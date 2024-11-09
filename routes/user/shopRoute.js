@@ -417,7 +417,7 @@ router.get("/follow", validateAccessToken, async (req, res) => {
     // Find the user and populate the shop details
     const user = await User.findOne({ email }).populate({
       path: "follows",
-      select: "_id name photo logo rating address", // Only bring shop details
+      select: "_id name photo logo rating address shortAddress", // Only bring shop details
       model: "Shop",
     });
 

@@ -213,21 +213,17 @@ router.put("/:id", validateAccessToken, async (req, res) => {
             ++user.loyalty;
           }
 
-        user.streak.count++;
-
-        // if (checkStreakDay({ streak: user.streak })) {
-        //   console.log("Steak work");
-        //   user.streak = {
-        //     count: user.streak.count + 1,
-        //     lastOrderDate: Date.now(),
-        //   };
-        // } else {
-        //   console.log("Streak not work");
-        //   user.streak = {
-        //     count: 1,
-        //     lastOrderDate: Date.now(),
-        //   };
-        // }
+        if (checkStreakDay({ streak: user.streak })) {
+          user.streak = {
+            count: user.streak.count + 1,
+            lastOrderDate: Date.now(),
+          };
+        } else {
+          user.streak = {
+            count: 1,
+            lastOrderDate: Date.now(),
+          };
+        }
       }
     }
 
