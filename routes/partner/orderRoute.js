@@ -9,7 +9,7 @@ const {
   PARTNERS_CONNECTIONS,
   USERS_CONNECTIONS,
 } = require("../../utils/socket/websokcetUtil");
-const checkStreak = require("../../utils/user/checkStreak");
+const { checkStreakDay } = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
 const balanceActivity = require("../../utils/user/balanceActivity");
 
@@ -213,19 +213,21 @@ router.put("/:id", validateAccessToken, async (req, res) => {
             ++user.loyalty;
           }
 
-        if (checkStreak(user.streak)) {
-          console.log("Steak work");
-          user.streak = {
-            count: user.streak.count + 1,
-            lastOrderDate: new Date(),
-          };
-        } else {
-          console.log("Streak not work");
-          user.streak = {
-            count: 1,
-            lastOrderDate: new Date(),
-          };
-        }
+        user.streak.count++;
+
+        // if (checkStreakDay({ streak: user.streak })) {
+        //   console.log("Steak work");
+        //   user.streak = {
+        //     count: user.streak.count + 1,
+        //     lastOrderDate: Date.now(),
+        //   };
+        // } else {
+        //   console.log("Streak not work");
+        //   user.streak = {
+        //     count: 1,
+        //     lastOrderDate: Date.now(),
+        //   };
+        // }
       }
     }
 

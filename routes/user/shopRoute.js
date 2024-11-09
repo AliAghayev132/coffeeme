@@ -63,7 +63,7 @@ router.get("/favorite", validateAccessToken, async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    
+
     return res
       .status(500)
       .json({ success: false, message: "Server error", error });
@@ -195,11 +195,14 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
           discountedPrice:
             item.sizes.length > 0 ? item.sizes[0].discountedPrice : 0,
           price: item.sizes.length > 0 ? item.sizes[0].price : 0,
-          shop: item.shop ? { // Include shop details if available
-            _id: item.shop._id,
-            name: item.shop.name,
-            shortAddress: item.shop.shortAddress,
-          } : null,
+          shop: item.shop
+            ? {
+                // Include shop details if available
+                _id: item.shop._id,
+                name: item.shop.name,
+                shortAddress: item.shop.shortAddress,
+              }
+            : null,
           itemType: "Product",
         };
       }),
@@ -290,23 +293,23 @@ router.post("/search/clicked", validateAccessToken, async (req, res) => {
     }
 
     // Check if the item is already in recentSearched
-    const alreadySearched = user.recentSearched[itemType.toLowerCase() + 's'].some(
-      (search) => search.item.toString() === itemId
-    );
+    const alreadySearched = user.recentSearched[
+      itemType.toLowerCase() + "s"
+    ].some((search) => search.item.toString() === itemId);
 
     // If already searched, move it to the front (remove and add again)
     if (alreadySearched) {
-      user.recentSearched[itemType.toLowerCase() + 's'] = user.recentSearched[itemType.toLowerCase() + 's'].filter(
-        (search) => search.item.toString() !== itemId
-      );
+      user.recentSearched[itemType.toLowerCase() + "s"] = user.recentSearched[
+        itemType.toLowerCase() + "s"
+      ].filter((search) => search.item.toString() !== itemId);
     }
 
     // Add the new item at the beginning of the respective array
-    user.recentSearched[itemType.toLowerCase() + 's'].unshift({ item: itemId });
+    user.recentSearched[itemType.toLowerCase() + "s"].unshift({ item: itemId });
 
     // Limit to 5 items in each array
-    if (user.recentSearched[itemType.toLowerCase() + 's'].length > 5) {
-      user.recentSearched[itemType.toLowerCase() + 's'].pop();
+    if (user.recentSearched[itemType.toLowerCase() + "s"].length > 5) {
+      user.recentSearched[itemType.toLowerCase() + "s"].pop();
     }
 
     // Save the updated user
@@ -584,6 +587,7 @@ router.get("/nearest", validateAccessToken, async (req, res) => {
 
       return {
         ...shop,
+        walkingTimes,
       };
     });
 

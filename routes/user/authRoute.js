@@ -14,7 +14,7 @@ const {
   validatePassword,
 } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
-const checkStreak = require("../../utils/user/checkStreak");
+const {checkStreak} = require("../../utils/user/checkStreak");
 const accountController = require("../../controllers/user/accountController");
 const generateUniqueReferenceCode = require("../../utils/referenceCodeGenerator");
 
@@ -301,10 +301,7 @@ router.post("/forgot-password-confirm", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { password, email } = req.body;
-    console.log({ email });
-
     const user = await User.findOne({ email }).lean();
-    console.log(user);
 
     if (!user) {
       return res.status(400).json({ error: "User not found" });
@@ -408,8 +405,13 @@ router.get("/user", validateAccessToken, async (req, res) => {
       user.streak = {
         count: 0,
       };
-      await user.save();
     }
+
+    if (user.streak.count >= 7 && user.category !== "premium") {
+      user.category = "streakPremium";
+    }
+
+    await user.save();
 
     user.password = undefined;
     user.__v = undefined;

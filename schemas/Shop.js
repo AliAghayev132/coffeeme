@@ -46,6 +46,16 @@ const shopSchema = new Schema({
     type: Number,
     default: 0,
   },
+  openHours: {
+    open: {
+      type: String,
+      default: "10",
+    },
+    close: {
+      type: String,
+      default: "20",
+    },
+  },
 });
 
 shopSchema.pre("save", async function (next) {

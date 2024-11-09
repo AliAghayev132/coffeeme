@@ -30,9 +30,10 @@ router.post(
   upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
   async (req, res) => {
     try {
-      const { name, longitude, latitude, address, shortAddress } = req.body;
+      const { name, longitude, latitude, address, shortAddress, open, close } =
+        req.body;
 
-      if (!name || !longitude || !latitude || !address) {
+      if (!name || !longitude || !latitude || !address || !open || !close) {
         return res.status(400).json({
           error: "Name, longitude, address and latitude are required",
         });
@@ -42,6 +43,10 @@ router.post(
         shortAddress,
         address,
         name,
+        openHours : {
+          open: open >= 10 ? "" + open : "0" + open,
+          close: close >= 10 ? "" + close : "0" + close,
+        } ,
         location: {
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
@@ -94,7 +99,8 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, longitude, latitude, address, shortAddress } = req.body;
+      const { name, longitude, latitude, address, shortAddress, open, close } =
+        req.body;
 
       const shop = await Shop.findById(id);
       if (!shop) {
@@ -111,6 +117,11 @@ router.put(
         };
       }
       if (address) shop.address = address;
+      if (open && close)
+        shop.openHours = {
+          open: open >= 10 ? "" + open : "0" + open,
+          close: close >= 10 ? "" + close : "0" + close,
+        };
 
       const newDir = `public/uploads/shops/${shop.name}-${shop.address}`;
 
