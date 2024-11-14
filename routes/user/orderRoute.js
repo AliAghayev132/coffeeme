@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Order = require("../../schemas/Order"); // Order model
-const Product = require("../../schemas/Product"); // Product model
-const User = require("../../schemas/User"); // User model
+const Order = require("../../schemas/Order");
+const Product = require("../../schemas/Product");
+const User = require("../../schemas/User");
 const Shop = require("../../schemas/Shop");
 const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
@@ -255,7 +255,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     balanceActivity(user, {
       category: "order",
       title: `${shop.name} ${shop.shortAddress}`,
-      amount: newOrder.totalDiscountedPrice,
+      amount: -newOrder.totalDiscountedPrice,
     });
 
     await user.save();

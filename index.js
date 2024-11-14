@@ -76,11 +76,15 @@ const connectToMongoDB = async () => {
 
 // Express Routes
 const setupRoutes = () => {
+  app.use("/public", express.static("public"));
+
   app.use("/api/admin", adminRouter);
   app.use("/api/users", userRouter);
   app.use("/api/partners", partnerRouter);
   app.use("/api/subscribers", subscriberRouter);
-  app.use("/public", express.static("public"));
+
+
+  
 
   // Serve static files for the client
   // app.use(express.static(path.join(__dirname, "./client/dist")));

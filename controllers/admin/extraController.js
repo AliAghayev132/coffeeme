@@ -1,6 +1,7 @@
-const Admin = require("../../schemas/Admin");
-const Notification = require("../../schemas/Notification");
 const User = require("../../schemas/User");
+const Admin = require("../../schemas/Admin");
+const FingerTips = require("../../schemas/FingerTips");
+const Notification = require("../../schemas/Notification");
 
 // const getMenu = async (req, res) => {
 //   try {
@@ -260,10 +261,87 @@ const updatePartnerNotification = async (req, res) => {
   }
 };
 
+const getFingerTips = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+    }
+
+    const fingerTips = await FingerTips.findOne({});
+
+    res.status(200).json({
+      message: "All fingersTips retrieved",
+      success: true,
+      fingerTips,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const addShopToFingerTips = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+    }
+    const { id } = req.body;
+    let fingerTips = await FingerTips.findOne({});
+    if (!fingerTips) fingerTips = new FingerTips({});
+
+    fingerTips.coffeeShops.push(id);
+
+    res.status(200).json({
+      message: "All fingersTips retrieved",
+      success: true,
+      fingerTips,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const removeShopFromFingerTips = async (req, res) => {
+  try {
+    const { email } = req.user;
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+    }
+    const { id } = req.body;
+    const fingerTips = await FingerTips.findOne({});
+    fingerTips.coffeeShops = fingerTips.coffeeShops.filter(
+      (shop) => shop !== id
+    );
+    await fingerTips.save();
+
+    res.status(200).json({
+      message: "All fingersTips retrieved",
+      success: true,
+      fingerTips,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   // getMenu,
   // getSubscribers,
   // createNewNotification,
+  removeShopFromFingerTips,
+  addShopToFingerTips,
+  getFingerTips,
   updatePartnerNotification,
   getPartnerNotifications,
 };

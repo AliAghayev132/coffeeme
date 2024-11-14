@@ -274,5 +274,7 @@ router.post(
   validateAccessToken,
   extraController.referAFriend
 );
+// FingerTips
+router.get("/fingertips", validateAccessToken, extraController.getFingerTips);
 
 module.exports = router;

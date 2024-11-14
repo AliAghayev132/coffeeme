@@ -1,4 +1,4 @@
-const Otp =  require("../schemas/Otp");
+const Otp = require("../schemas/Otp");
 const otpGenerator = require("otp-generator");
 
 const generateUniqueOtp = async () => {
@@ -6,7 +6,7 @@ const generateUniqueOtp = async () => {
     upperCaseAlphabets: false,
     lowerCaseAlphabets: false,
     specialChars: false,
-  });   
+  });
 
   while (await Otp.findOne({ otp })) {
     otp = otpGenerator.generate(4, {

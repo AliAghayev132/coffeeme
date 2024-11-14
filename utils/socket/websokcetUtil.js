@@ -71,9 +71,23 @@ const handleWebSocketConnection = (wss) => {
   });
 };
 
+const CONNECTIONS = {
+  user: USERS_CONNECTIONS,
+  partner: PARTNERS_CONNECTIONS,
+  admin: ADMIN_CONNECTIONS,
+};
+
+const socketMessageSender = (role, id, data) => {
+  const to = CONNECTIONS[role][id];
+  console.log({ role, id, data, to });
+
+  if (to) to.send(JSON.stringify(data));
+};
+
 module.exports = {
   handleWebSocketConnection,
   USERS_CONNECTIONS,
   PARTNERS_CONNECTIONS,
   ADMIN_CONNECTIONS,
+  socketMessageSender,
 };

@@ -79,7 +79,8 @@ const handleUserHistory = async (order) => {
           type: "ORDER_STATUS",
           state: "cancelled",
           data: {
-            shop: order.shop.name,
+            shopName: order.shop.name,
+            shopShortAddress: order.shop.shortAddress,
             products: order.items.product,
           },
         })

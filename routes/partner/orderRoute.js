@@ -5,10 +5,7 @@ const Order = require("../../schemas/Order");
 const User = require("../../schemas/User");
 const Referral = require("../../schemas/user/Referral");
 const validateAccessToken = require("../../middlewares/validateToken");
-const {
-  PARTNERS_CONNECTIONS,
-  USERS_CONNECTIONS,
-} = require("../../utils/socket/websokcetUtil");
+const { socketMessageSender } = require("../../utils/socket/websokcetUtil");
 const { checkStreakDay } = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
 const balanceActivity = require("../../utils/user/balanceActivity");
@@ -197,10 +194,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
       user.visitedCoffeeShops.push(partner.shop._id);
-      order.items.forEach((item) => {
-        console.log({ item });
-        user.orderedProducts.push(item.product);
-      });
+      order.items.forEach((item) => user.orderedProducts.push(item.product));
       if (user.category !== "premium") {
         // streakPremium
         if (
@@ -233,39 +227,30 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         (orderId) => orderId.toString() !== id
       );
       partner.history.push(order._id);
-
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
 
       const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+      user.balance += refundAmount;
+
       balanceActivity(user, {
         category: "refund",
         title: `${shop.name} ${shop.shortAddress}`,
-        amount: order.totalDiscountedPrice,
+        amount: refundAmount,
       });
-      user.balance += refundAmount;
     }
 
-    // Notify partner via WebSocket
-    if (PARTNERS_CONNECTIONS[partner._id]) {
-      PARTNERS_CONNECTIONS[partner._id].send(
-        JSON.stringify({
-          type: "ORDER_STATUS",
-          state: delivered ? delivered : "UPDATE",
-        })
-      );
-    }
+    // Notify partner and user via WebSocket
+    socketMessageSender("partner", partner._id, {
+      type: "ORDER_STATUS",
+      state: delivered ? delivered : "UPDATE",
+    });
 
-    // Notify user via WebSocket if applicable
-    if (USERS_CONNECTIONS[user._id]) {
-      USERS_CONNECTIONS[user._id].send(
-        JSON.stringify({
-          type: "ORDER_STATUS",
-          state: status,
-          order: order,
-        })
-      );
-    }
+    socketMessageSender("user", user._id, {
+      type: "ORDER_STATUS",
+      state: status,
+      order: order,
+    });
 
     // Save order, partner, and user updates in parallel
     await Promise.all([order.save(), partner.save(), user.save()]);

@@ -231,7 +231,10 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
 
     // Perform a case-insensitive search for shops and products by name
     const shops = await Shop.find({
-      name: { $regex: query, $options: "i" }, // Case-insensitive match
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { shortAddress: { $regex: query, $options: "i" } },
+      ], // Case-insensitive match
     }).select("_id name rating address shortAddress logo photo");
 
     const products = await Product.find({

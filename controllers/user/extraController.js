@@ -3,6 +3,7 @@ const Partner = require("../../schemas/Partner");
 const Shop = require("../../schemas/Shop");
 const Product = require("../../schemas/Product");
 const Referral = require("../../schemas/user/Referral");
+const FingerTips = require("../../schemas/FingerTips");
 
 const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
 const mailSender = require("../../utils/mailsender");
@@ -269,11 +270,25 @@ const referAFriend = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getFingerTips = async (req, res) => {
+  try {
+    const fingerTips = await FingerTips.findOne({}).lean();
+
+    res.status(200).json({
+      message: "All fingersTips retrieved",
+      success: true,
+      fingerTips,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   updateLocation,
   getNotifications,
   getBestSellers,
+  getFingerTips,
   sendInvoice,
   referAFriend,
 };

@@ -21,8 +21,7 @@ const updateStockStatus = async (req, res) => {
     const existProduct = partner.shop.products.find(
       (product) => product._id.toString() === id
     );
-    console.log({ existProduct, status });
-
+    
     if (!existProduct) {
       return res
         .status(404)
@@ -56,7 +55,6 @@ const getAllProducts = async (req, res) => {
         .json({ success: false, message: "Partner not found" });
     }
 
-    // Partner ve shop bilgileri döndürülüyor
     return res.status(200).json({
       success: true,
       products: partner.shop.products,
