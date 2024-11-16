@@ -88,6 +88,11 @@ const orderSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  id: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
 });
 orderSchema.pre("save", function (next) {
   const order = this;

@@ -9,7 +9,6 @@ const { socketMessageSender } = require("../../utils/socket/websokcetUtil");
 const { checkStreakDay } = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
 const balanceActivity = require("../../utils/user/balanceActivity");
-const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
 async function sendOrderDetails(email, data) {
   try {
@@ -70,6 +69,7 @@ router.get("/", validateAccessToken, async (req, res) => {
         .status(404)
         .json({ success: false, message: "Partner not found" });
     }
+
     const ordersWithUserDetails = partner.orders.map((order) => ({
       _id: order._id,
       items: order.items.map((item) => ({
@@ -167,7 +167,9 @@ router.put("/:id", validateAccessToken, async (req, res) => {
           ).populate("referrerUserId");
 
           if (referral) user.balance += 1;
-          if (referral.referrerUserId) referral.referrerUserId.balance += 1;
+          if (referral.referrerUserId) {
+            referral.referrerUserId.balance += 1;
+          }
           balanceActivity(user, {
             category: "refer",
             title: `Refer a friend - ${referral.referrerUserId.firstname}`,
@@ -186,8 +188,14 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       partner.orders = partner.orders.filter(
         (orderId) => orderId.toString() !== id
       );
-      if (!partner.customers.includes(user._id)) {
-        partner.customers.push(user._id);
+      const customerUser = partner.customers.find((customer) =>
+        customer.user.equals(user._id)
+      );
+      
+      if (!customerUser) {
+        partner.customers.push({ user: user._id, count: 1 });
+      } else {
+        ++customerUser.count;
       }
 
       partner.history.push(order._id);
