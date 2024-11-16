@@ -26,6 +26,8 @@ const handleWebSocketConnection = (wss) => {
           return;
         }
 
+        console.log("Bura", { token, role });
+
         if (role === "user") {
           const { email } = decoded;
           const user = await User.findOne({ email });
@@ -79,7 +81,6 @@ const CONNECTIONS = {
 
 const socketMessageSender = (role, id, data) => {
   const to = CONNECTIONS[role][id];
-  console.log({ role, id, data, to });
 
   if (to) to.send(JSON.stringify(data));
 };

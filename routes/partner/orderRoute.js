@@ -9,6 +9,7 @@ const { socketMessageSender } = require("../../utils/socket/websokcetUtil");
 const { checkStreakDay } = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
 const balanceActivity = require("../../utils/user/balanceActivity");
+const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 
 async function sendOrderDetails(email, data) {
   try {
@@ -35,7 +36,7 @@ router.get("/", validateAccessToken, async (req, res) => {
         {
           path: "user",
           select:
-            "firstname secondname email phone birthdate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
+            "firstname secondname email phone birthDate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
           populate: [
             {
               path: "extraDetails.mostOrderedThreeProducts", // En çok sipariş edilen 3 ürünü ekle
@@ -77,9 +78,9 @@ router.get("/", validateAccessToken, async (req, res) => {
           name: item.product.name,
           category: item.product.category,
           price: item.product.price,
-          type: item.product.type,
-          additions: item.product.additions,
         },
+        type: item.type,
+        additions: item.additions,
         quantity: item.quantity,
         price: item.price,
         discount: item.discount,
@@ -98,7 +99,7 @@ router.get("/", validateAccessToken, async (req, res) => {
         email: order.user.email,
         phone: order.user.phone,
         _id: order.user._id,
-        birthdate: order.user.birthdate,
+        birthDate: order.user.birthDate,
         extraDetails: order.user.extraDetails,
         overAllRating: order.user.overAllRating,
         lastOrders:
@@ -190,7 +191,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
 
       partner.history.push(order._id);
       partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
-      partner.balance += order.totalDiscountedPrice;
+      partner.balance = order.totalDiscountedPrice + partner.balance;
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
       user.visitedCoffeeShops.push(partner.shop._id);
