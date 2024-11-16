@@ -45,16 +45,6 @@ router.get("/", validateAccessToken, async (req, res) => {
               path: "extraDetails.mostGoingCoffeeShop", // En çok gidilen kafe
               select: "name", // Kafe bilgileri (gerekirse alanları ayarla)
             },
-            {
-              path: "history",
-              match: { "rating.product": { $ne: null } }, // rating.product değeri dolu olanları al
-              options: { sort: { createdAt: -1 }, limit: 1 },
-              select: "rating items",
-              populate: {
-                path: "items.product", // Ürün bilgilerini popüle et
-                select: "name", // Yalnızca isim alanını al
-              },
-            },
           ],
         },
         {
@@ -69,6 +59,30 @@ router.get("/", validateAccessToken, async (req, res) => {
         .status(404)
         .json({ success: false, message: "Partner not found" });
     }
+
+    partner.orders = await Promise.all(
+      partner.orders.map(async (order) => {
+        // Kullanıcı için en son sipariş
+        const lastOrder = await Order.findOne({
+          user: order.user._id,
+          _id: { $ne: order._id },
+        })
+          .sort({ _id: -1 }) // Tarihe göre sıralama
+          .populate("items.product", "name price"); // Ürün bilgilerini popüle et
+
+        // Kullanıcı için en son rate verilen sipariş
+        const lastRatedOrder = await Order.findOne({
+          user: order.user._id,
+          "rating.product": { $ne: null }, // Sadece değerlendirme yapılmış siparişler
+        }).sort({ _id: -1 }); // Rating'e göre sıralama
+
+        // Siparişe ekle
+        order.lastOrder = lastOrder;
+        order.lastRatedOrder = lastRatedOrder;
+
+        return order;
+      })
+    );
 
     const ordersWithUserDetails = partner.orders.map((order) => ({
       _id: order._id,
@@ -95,18 +109,22 @@ router.get("/", validateAccessToken, async (req, res) => {
       statusHistory: order.statusHistory,
       preparingTime: order.preparingTime,
       user: {
+        comingCount: partner.customers.find((customer) =>
+          customer.user.equals(order.user._id)
+        ),
         firstname: order.user.firstname,
         secondname: order.user.secondname,
+        lastOrder: order.lastOrder,
+        lastRatedOrder: order.lastRatedOrder,
         email: order.user.email,
         phone: order.user.phone,
         _id: order.user._id,
         birthDate: order.user.birthDate,
         extraDetails: order.user.extraDetails,
         overAllRating: order.user.overAllRating,
-        lastOrders:
-          order.user.history.length > 0 ? order.user.history[0] : null, // En son siparişi almak
       },
     }));
+
 
     return res.status(200).json({
       success: true,
@@ -191,12 +209,14 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       const customerUser = partner.customers.find((customer) =>
         customer.user.equals(user._id)
       );
-      
+
       if (!customerUser) {
         partner.customers.push({ user: user._id, count: 1 });
       } else {
         ++customerUser.count;
       }
+
+      console.log(customerUser);
 
       partner.history.push(order._id);
       partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
