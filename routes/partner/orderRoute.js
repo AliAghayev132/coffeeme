@@ -93,6 +93,7 @@ router.get("/", validateAccessToken, async (req, res) => {
       message: order.message,
       status: order.status,
       statusHistory: order.statusHistory,
+      preparingTime: order.preparingTime,
       user: {
         firstname: order.user.firstname,
         secondname: order.user.secondname,

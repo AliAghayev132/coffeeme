@@ -26,8 +26,6 @@ const handleWebSocketConnection = (wss) => {
           return;
         }
 
-        console.log("Bura", { token, role });
-
         if (role === "user") {
           const { email } = decoded;
           const user = await User.findOne({ email });
