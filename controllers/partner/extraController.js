@@ -173,11 +173,6 @@ const getCustomers = async (req, res) => {
 const getCloseUsers = async (req, res) => {
   try {
     const { username } = req.user;
-    // const partner = await Partner.findOne({ username }).populate({
-    //   path: "closeUsers",
-    //   select:
-    //     "image firstname lastLocationUpdate.location lastLocationUpdate.date",
-    // });
 
     const partner = await Partner.findOne({ username }).populate("closeUsers");
     if (!partner)

@@ -74,6 +74,15 @@ const updateLocation = async (req, res) => {
             userId: user._id,
             lastLocationUpdate: Date.now(),
           });
+
+          partner.recentCloseNotifications.push({
+            user: user.id,
+          });
+
+          if (partner.recentCloseNotifications.length > 10) {
+            partner.recentCloseNotifications.shift();
+          }
+
           await partner.save(); // Partner kaydet
 
           if (PARTNERS_CONNECTIONS[partner._id]) {
@@ -81,13 +90,8 @@ const updateLocation = async (req, res) => {
               JSON.stringify({
                 type: "CLOSE_USER",
                 data: {
-                  _id: user._id,
                   firstName: user.firstname,
                   secondName: user.secondname,
-                  birthDate: user.birthdate,
-                  image: user.image,
-                  birthDate: user.birthdate,
-                  gender: user.gender,
                 },
               })
             );

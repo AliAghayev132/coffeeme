@@ -86,6 +86,7 @@ router.get("/", validateAccessToken, async (req, res) => {
 
     const ordersWithUserDetails = partner.orders.map((order) => ({
       _id: order._id,
+      id: order.id,
       items: order.items.map((item) => ({
         _id: item._id,
         product: {

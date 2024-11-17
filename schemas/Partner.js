@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const RecentCloseNotifications = new Schema({
+  date: {
+    type: Date,
+    default: Date.now(),
+  },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+});
+
 const PartnerSchema = new Schema({
   isOnline: {
     type: Boolean,
@@ -61,6 +69,7 @@ const PartnerSchema = new Schema({
       },
     },
   ],
+  recentCloseNotifications: [RecentCloseNotifications],
   notifications: [
     {
       type: Schema.Types.ObjectId,
