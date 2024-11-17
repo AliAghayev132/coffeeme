@@ -709,7 +709,6 @@ router.post("/again/:id", validateAccessToken, async (req, res) => {
         },
       });
 
-    console.log(order);
 
     return res.status(200).json({ success: true, message: "Oops zort", order });
   } catch (error) {
