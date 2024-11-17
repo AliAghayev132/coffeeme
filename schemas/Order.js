@@ -94,16 +94,27 @@ const orderSchema = new Schema({
     required: true,
   },
 });
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", async function (next) {
   const order = this;
+  
+  if (order.isNew) {
+    const lastOrder = await mongoose
+      .model("Order")
+      .findOne()
+      .sort({ id: -1 }); // Find the last inserted order by descending id
+    order.id = lastOrder ? lastOrder.id + 1 : 1; // Increment `id` or start at 1
+  }
+  
   if (order.isModified("status")) {
     order.statusHistory.push({
       status: order.status,
       changedAt: new Date(),
     });
   }
+
   next();
 });
+
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

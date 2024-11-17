@@ -125,7 +125,6 @@ router.get("/", validateAccessToken, async (req, res) => {
       },
     }));
 
-
     return res.status(200).json({
       success: true,
       message: "All orders got",
@@ -216,8 +215,6 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         ++customerUser.count;
       }
 
-      console.log(customerUser);
-
       partner.history.push(order._id);
       partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
       partner.balance = order.totalDiscountedPrice + partner.balance;
@@ -226,7 +223,6 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       user.visitedCoffeeShops.push(partner.shop._id);
       order.items.forEach((item) => user.orderedProducts.push(item.product));
       if (user.category !== "premium") {
-        // streakPremium
         if (
           (user.loyalty !== 0 &&
             !order.loyalty &&
@@ -251,23 +247,26 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       }
     }
 
-    if (status === "cancelled" && order.loyalty) {
-      user.loyalty = 10;
+    if (status === "cancelled") {
       partner.orders = partner.orders.filter(
         (orderId) => orderId.toString() !== id
       );
+
       partner.history.push(order._id);
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
 
-      const refundAmount = order.totalDiscountedPrice || order.totalPrice;
-      user.balance += refundAmount;
-
-      balanceActivity(user, {
-        category: "refund",
-        title: `${shop.name} ${shop.shortAddress}`,
-        amount: refundAmount,
-      });
+      if (order.loyalty) {
+        user.loyalty = 10;
+      } else {
+        const refundAmount = order.totalDiscountedPrice || order.totalPrice;
+        user.balance += refundAmount;
+        balanceActivity(user, {
+          category: "refund",
+          title: `${order.shop.name} ${order.shop.shortAddress}`,
+          amount: refundAmount,
+        });
+      }
     }
 
     // Notify partner and user via WebSocket
