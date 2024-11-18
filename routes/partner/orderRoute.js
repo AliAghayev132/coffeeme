@@ -62,21 +62,18 @@ router.get("/", validateAccessToken, async (req, res) => {
 
     partner.orders = await Promise.all(
       partner.orders.map(async (order) => {
-        // Kullanıcı için en son sipariş
         const lastOrder = await Order.findOne({
           user: order.user._id,
           _id: { $ne: order._id },
         })
-          .sort({ _id: -1 }) // Tarihe göre sıralama
-          .populate("items.product", "name price"); // Ürün bilgilerini popüle et
+          .sort({ _id: -1 })
+          .populate("items.product", "name price");
 
-        // Kullanıcı için en son rate verilen sipariş
         const lastRatedOrder = await Order.findOne({
           user: order.user._id,
-          "rating.product": { $ne: null }, // Sadece değerlendirme yapılmış siparişler
-        }).sort({ _id: -1 }); // Rating'e göre sıralama
+          "rating.product": { $ne: null },
+        }).sort({ _id: -1 });
 
-        // Siparişe ekle
         order.lastOrder = lastOrder;
         order.lastRatedOrder = lastRatedOrder;
 
@@ -216,8 +213,12 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         ++customerUser.count;
       }
 
+
       partner.history.push(order._id);
-      partner.totalRevenue += order.totalDiscountedPrice || order.totalPrice;
+      partner.totalRevenue += (
+        order.totalPrice -
+        (order.totalPrice * order.shop.discountPercentage) / 100
+      ).toFixed(2);
       partner.balance = order.totalDiscountedPrice + partner.balance;
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);

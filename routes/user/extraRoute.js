@@ -54,7 +54,6 @@ router.get("/history/:id", validateAccessToken, async (req, res) => {
     const { email } = req.user; // Kullanıcının e-posta adresini al
     const { id } = req.params; // URL parametresinden id'yi al
 
-    console.log({ id });
 
     // Kullanıcıyı e-posta adresi ile bul ve 'history' alanını doldur
     const user = await User.findOne({ email }).populate({
@@ -189,8 +188,6 @@ router.put("/rate/:id", validateAccessToken, async (req, res) => {
           } else if (!user.extraDetails.overAllRating) {
             user.extraDetails.overAllRating = { rating: 0, count: 0 };
           }
-
-          console.log(user.extraDetails.overAllRating);
 
           user.extraDetails.overAllRating.count += 1;
           user.extraDetails.overAllRating.rating = roundToTwoDecimals(
