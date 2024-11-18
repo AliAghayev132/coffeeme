@@ -56,6 +56,11 @@ const shopSchema = new Schema({
       default: "20",
     },
   },
+  discountPercentage: {
+    type: Number,
+    required: true,
+    default: 10,
+  },
 });
 
 shopSchema.pre("save", async function (next) {

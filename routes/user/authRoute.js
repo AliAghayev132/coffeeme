@@ -265,17 +265,17 @@ router.post("/forgot-password-confirm", async (req, res) => {
     ]);
 
     if (!existingUser) {
-      return res.status(400).json({ sucess: false, message: "User not found" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
 
     if (!existingOtp) {
-      return res.status(400).json({ sucess: false, message: "Invalid OTP" });
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
     if (existingOtp.email !== email) {
       return res
         .status(400)
-        .json({ sucess: false, message: "Email is different" });
+        .json({ success: false, message: "Email is different" });
     }
 
     const passwordMatch = await bcrypt.compare(password, existingUser.password);
@@ -291,7 +291,7 @@ router.post("/forgot-password-confirm", async (req, res) => {
     await Otp.deleteOne({ otp });
     return res
       .status(200)
-      .json({ sucess: true, message: "Password reset successfully" });
+      .json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error("Error during password reset:", error);
     return res.status(500).json({ message: "Internal server error" });

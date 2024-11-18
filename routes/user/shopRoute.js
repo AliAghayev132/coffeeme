@@ -11,20 +11,18 @@ const User = require("../../schemas/User");
 
 router.get("/favorite", validateAccessToken, async (req, res) => {
   try {
-    const { email } = req.user; // Extract user info from JWT
-
-    // Find user and populate favorite shops and products
+    const { email } = req.user;
     const user = await User.findOne({ email })
       .populate({
-        path: "favorites.shops", // Populate favorite shops
-        select: "_id name address photo logo shortAddress", // Only get shop ID and name
+        path: "favorites.shops",
+        select: "_id name address photo logo shortAddress discountPercentage",
       })
       .populate({
-        path: "favorites.products", // Populate favorite products
-        select: "_id name photo rating sizes shop", // Include shop data
+        path: "favorites.products",
+        select: "_id name photo rating sizes shop",
         populate: {
-          path: "shop", // Shop alanını populate et
-          select: "name logo shortAddress", // Shop için istenen alanlar
+          path: "shop",
+          select: "name logo shortAddress",
         },
       });
 
@@ -148,7 +146,8 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
     const user = await User.findOne({ email })
       .populate({
         path: "recentSearched.shops.item", // Populate shop items
-        select: "_id name address shortAddress rating photo logo",
+        select:
+          "_id name address shortAddress rating photo logo discountPercentage",
       })
       .populate({
         path: "recentSearched.products.item", // Populate product items
@@ -176,6 +175,7 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
           name: item.name,
           address: item.address,
           shortAddress: item.shortAddress,
+          discountPercentage: item.discountPercentage,
           rating: item.rating,
           photo: item.photo,
           logo: item.logo, // Include shop's logo
@@ -235,7 +235,9 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
         { name: { $regex: query, $options: "i" } },
         { shortAddress: { $regex: query, $options: "i" } },
       ], // Case-insensitive match
-    }).select("_id name rating address shortAddress logo photo");
+    }).select(
+      "_id name rating address shortAddress logo photo discountPercentage"
+    );
 
     const products = await Product.find({
       name: { $regex: query, $options: "i" }, // Case-insensitive match
@@ -420,7 +422,8 @@ router.get("/follow", validateAccessToken, async (req, res) => {
     // Find the user and populate the shop details
     const user = await User.findOne({ email }).populate({
       path: "follows",
-      select: "_id name photo logo rating address shortAddress", // Only bring shop details
+      select:
+        "_id name photo logo rating address shortAddress discountPercentage", // Only bring shop details
       model: "Shop",
     });
 
@@ -433,10 +436,6 @@ router.get("/follow", validateAccessToken, async (req, res) => {
     // Get followed shop details and find the partner details for each shop
     const followedShops = await Promise.all(
       user.follows.map(async (shop) => {
-        const partner = await Partner.findOne({ shop: shop._id }).select(
-          "shopPercentage"
-        ); // Get shopPercentage from Partner model
-
         return {
           _id: shop._id,
           name: shop.name,
@@ -445,14 +444,16 @@ router.get("/follow", validateAccessToken, async (req, res) => {
           photo: shop.photo,
           address: shop.address,
           shortAddress: shop.shortAddress,
-          percentage: partner ? partner.shopPercentage : null, // Include percentage if found, otherwise null
+          discountPercentage: shop.discountPercentage, // Include percentage if found, otherwise null
         };
       })
     );
 
     return res.status(200).json({ success: true, followedShops });
   } catch (error) {
+    console.log(error);
     return res
+    
       .status(500)
       .json({ success: false, message: "Server error", error });
   }

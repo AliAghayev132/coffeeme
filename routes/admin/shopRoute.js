@@ -23,6 +23,7 @@ const storage = multer.diskStorage({
   },
 });
 const Partner = require("../../schemas/Partner");
+const { log } = require("console");
 const upload = multer({ storage: storage });
 router.post(
   "/",
@@ -30,10 +31,26 @@ router.post(
   upload.fields([{ name: "logo" }, { name: "photo" }]), // Multer middleware
   async (req, res) => {
     try {
-      const { name, longitude, latitude, address, shortAddress, open, close } =
-        req.body;
+      const {
+        name,
+        longitude,
+        latitude,
+        address,
+        shortAddress,
+        open,
+        close,
+        discountPercentage,
+      } = req.body;
 
-      if (!name || !longitude || !latitude || !address || !open || !close) {
+      if (
+        !name ||
+        !longitude ||
+        !latitude ||
+        !address ||
+        !open ||
+        !close ||
+        !discountPercentage
+      ) {
         return res.status(400).json({
           error: "Name, longitude, address and latitude are required",
         });
@@ -43,10 +60,11 @@ router.post(
         shortAddress,
         address,
         name,
-        openHours : {
+        discountPercentage,
+        openHours: {
           open: open >= 10 ? "" + open : "0" + open,
           close: close >= 10 ? "" + close : "0" + close,
-        } ,
+        },
         location: {
           type: "Point",
           coordinates: [parseFloat(longitude), parseFloat(latitude)],
@@ -99,8 +117,17 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, longitude, latitude, address, shortAddress, open, close } =
-        req.body;
+      const {
+        name,
+        longitude,
+        latitude,
+        address,
+        shortAddress,
+        open,
+        close,
+        discountPercentage,
+      } = req.body;
+
 
       const shop = await Shop.findById(id);
       if (!shop) {
@@ -110,6 +137,7 @@ router.put(
       const oldDir = `public/uploads/shops/${shop.name}-${shop.address}`;
       if (shortAddress) shop.shortAddress = shortAddress;
       if (name) shop.name = name;
+      if (discountPercentage) shop.discountPercentage = discountPercentage;
       if (longitude && latitude) {
         shop.location = {
           type: "Point",
@@ -169,6 +197,7 @@ router.put(
       }
 
       await shop.save();
+
 
       return res
         .status(200)
