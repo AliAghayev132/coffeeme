@@ -4,7 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validateAccessToken = require("../../middlewares/validateToken");
-  
+
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -68,7 +68,6 @@ router.post("/refresh-token", async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 });
-
 router.get("/", validateAccessToken, async (req, res) => {
   try {
     const { username } = req.user;
@@ -77,6 +76,24 @@ router.get("/", validateAccessToken, async (req, res) => {
     if (!partner) {
       return res.status(404).json({ message: "Partner not found" });
     }
+    return res.status(200).json({ success: true, partner });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+router.put("/status", validateAccessToken, async (req, res) => {
+  try {
+    const { username } = req.user;
+    const partner = await Partner.findOne({ username }).populate("shop");
+
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found" });
+    }
+
+    partner.shop.isOnline = !partner.shop.isOnline; 
+    await partner.shop.save();
+
     return res.status(200).json({ success: true, partner });
   } catch (error) {
     console.error(error);

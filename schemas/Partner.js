@@ -10,10 +10,7 @@ const RecentCloseNotifications = new Schema({
 });
 
 const PartnerSchema = new Schema({
-  isOnline: {
-    type: Boolean,
-    default: false,
-  },
+ 
   fullname: {
     type: String,
     required: false,

@@ -213,13 +213,19 @@ router.put("/:id", validateAccessToken, async (req, res) => {
         ++customerUser.count;
       }
 
-
       partner.history.push(order._id);
-      partner.totalRevenue += (
-        order.totalPrice -
-        (order.totalPrice * order.shop.discountPercentage) / 100
-      ).toFixed(2);
-      partner.balance = order.totalDiscountedPrice + partner.balance;
+      partner.totalRevenue += parseFloat(
+        (
+          order.totalPrice -
+          (order.totalPrice * order.shop.discountPercentage) / 100
+        ).toFixed(2)
+      );
+      partner.balance += parseFloat(
+        (
+          order.totalPrice -
+          (order.totalPrice * order.shop.discountPercentage) / 100
+        ).toFixed(2)
+      );
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
       user.visitedCoffeeShops.push(partner.shop._id);

@@ -62,6 +62,9 @@ router.post("/", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
+    if (!shop.isOnline)
+      return res.status(404).json({ message: "Shop is not online" });
+
     const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
@@ -317,6 +320,9 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
+    if (!shop.isOnline)
+      return res.status(404).json({ message: "Shop is not online" });
+
     const product = await Product.findById(orderedItem.productId); // Fetch single product
     if (!product || product.shop.toString() !== reqShop.id) {
       return res.status(400).json({ message: "Invalid product or shop" });
@@ -472,6 +478,9 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
+    if (!shop.isOnline)
+      return res.status(404).json({ message: "Shop is not online" });
+
     const productIds = orderedItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
 
@@ -624,6 +633,9 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
         .json({ success: false, message: "Shop not found" });
     }
 
+    if (!shop.isOnline)
+      return res.status(404).json({ message: "Shop is not online" });
+
     const productId = orderedItem.productId;
     const product = await Product.findById(productId);
 
@@ -708,7 +720,6 @@ router.post("/again/:id", validateAccessToken, async (req, res) => {
           path: "products", // Assuming 'products' is an array of product references in the Shop schema
         },
       });
-
 
     return res.status(200).json({ success: true, message: "Oops zort", order });
   } catch (error) {

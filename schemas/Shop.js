@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 const PartnerShop = require("./Partner");
 
 const shopSchema = new Schema({
+  isOnline: {
+    type: Boolean,
+    default: false,
+  },
   address: {
     type: String,
     required: true,
