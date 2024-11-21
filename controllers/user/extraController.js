@@ -71,7 +71,7 @@ const updateLocation = async (req, res) => {
         if (!userInCloseUsers) {
           // Kullanıcı closeUsers dizisine ekle
           partner.closeUsers.push({
-            userId: user._id,
+            user: user._id,
             lastLocationUpdate: Date.now(),
           });
 

@@ -59,7 +59,7 @@ const PartnerSchema = new Schema({
   followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
   closeUsers: [
     {
-      userId: { type: Schema.Types.ObjectId, ref: "User" },
+      user: { type: Schema.Types.ObjectId, ref: "User" },
       lastLocationUpdate: {
         type: Date,
         default: Date.now,

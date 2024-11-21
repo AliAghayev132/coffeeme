@@ -83,16 +83,12 @@ const setupRoutes = () => {
   app.use("/api/partners", partnerRouter);
   app.use("/api/subscribers", subscriberRouter);
 
-
-  
-
   // Serve static files for the client
   // app.use(express.static(path.join(__dirname, "./client/dist")));
   // app.get("*", (req, res) => {
   //   res.sendFile(path.join(__dirname, "./client/dist/index.html"));
   // });
-  
-  
+
   app.use(express.static(path.join(__dirname, "./client/dist")));
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "./client/dist/index.html"));

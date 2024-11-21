@@ -12,8 +12,10 @@ cron.schedule("* * * * *", async () => {
       });
 
       if (updatedCloseUsers.length !== partner.closeUsers.length) {
-        partner.closeUsers = updatedCloseUsers;
-        await partner.save();
+        await Partner.updateOne(
+          { _id: partner._id }, // Hangi belgeyi güncelleyeceğimizi belirtir
+          { closeUsers: updatedCloseUsers } // Güncellenen alan
+        );
         console.log(`Updated closeUsers for partner ${partner._id}`);
       }
     }

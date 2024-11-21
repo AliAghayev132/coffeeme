@@ -27,8 +27,6 @@ router.get(
           .status(404)
           .json({ success: false, message: "Partner not found" });
 
-      console.log(partner.recentCloseNotifications);
-
       return res.status(200).json({
         message: "All close users got",
         success: true,

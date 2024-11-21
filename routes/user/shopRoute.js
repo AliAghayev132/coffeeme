@@ -136,7 +136,6 @@ router.delete("/favorite", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 });
-
 // Search
 router.get("/search-recent", validateAccessToken, async (req, res) => {
   try {
@@ -554,7 +553,6 @@ router.delete("/follow", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 });
-
 router.get("/home", validateAccessToken, async (req, res) => {});
 router.get("/nearest", validateAccessToken, async (req, res) => {
   try {
