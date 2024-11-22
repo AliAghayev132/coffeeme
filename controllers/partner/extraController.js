@@ -37,7 +37,7 @@ const getSubscribers = async (req, res) => {
     const partner = await Partner.findOne({ username }).populate({
       path: "followers",
       select:
-        "firstname secondname birthdate gender extraDetails.mostGoingCoffeeShop",
+        "firstname secondname birthDate gender extraDetails.mostGoingCoffeeShop",
       populate: {
         path: "extraDetails.mostGoingCoffeeShop",
         select: "name",
@@ -137,9 +137,9 @@ const getCustomers = async (req, res) => {
   try {
     const { username } = req.user;
     const partner = await Partner.findOne({ username }).populate({
-      path: "customers",
+      path: "customers.user",
       select:
-        "firstname secondname gender birthdate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
+        "firstname secondname gender birthDate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
       populate: [
         {
           path: "extraDetails.mostOrderedThreeProducts", // En çok sipariş edilen 3 ürünü ekle
@@ -174,13 +174,16 @@ const getCloseUsers = async (req, res) => {
   try {
     const { username } = req.user;
 
-    const partner = await Partner.findOne({ username }).populate("closeUsers");
+    const partner = await Partner.findOne({ username }).populate({
+      path: "closeUsers.user", // closeUsers'daki user alanını doldur
+      select: "firstname secondname image lastLocationUpdate", // Geri dönecek alanlar
+    });
     if (!partner)
       return res
         .status(404)
         .json({ success: false, message: "Partner not found" });
 
-    console.log('Extra Controller',partner.closeUsers);
+    console.log("Extra Controller", partner.closeUsers);
 
     return res.status(200).json({
       message: "All close users got",
@@ -191,8 +194,43 @@ const getCloseUsers = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+const getHistory = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const partner = await Partner.findOne({ username }).populate({
+      path: "history",
+      populate: [
+        {
+          path: "user",
+          select: "firstname secondname email phone", // Add other fields you need here
+        },
+        {
+          path: "items.product",
+          select: "name category price rating", // Adjust fields based on your Product schema
+        },
+      ],
+    });
+    if (!partner) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+    }
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "All history delivered",
+        history: partner.history,
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
+  getHistory,
   getMenu,
   getSubscribers,
   createNewNotification,

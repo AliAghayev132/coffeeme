@@ -48,5 +48,6 @@ router.post(
   validateAccessToken,
   extraController.createNewNotification
 );
+router.get("/history", validateAccessToken, extraController.getHistory);
 
 module.exports = router;
