@@ -1,3 +1,5 @@
+const DailyReport = require("../../schemas/DailyReport");
+
 const updateDailyReport = async (order, user, partnerId) => {
   const currentDate = new Date().toISOString().split("T")[0];
 
