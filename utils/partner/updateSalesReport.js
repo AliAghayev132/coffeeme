@@ -98,4 +98,19 @@ const updateDailyReport = async (order, user, partnerId) => {
   }
 };
 
+const enforceDailyReportLimit = async (partnerId) => {
+  const reports = await DailyReport.find({ partner: partnerId })
+    .sort({ date: 1 }) // Tarihe göre artan sırada sırala
+    .lean();
+
+  if (reports.length > 90) {
+    const excessCount = reports.length - 90;
+
+    // Eski raporları sil
+    const idsToDelete = reports
+      .slice(0, excessCount)
+      .map((report) => report._id);
+    await DailyReport.deleteMany({ _id: { $in: idsToDelete } });
+  }
+};
 module.exports = updateDailyReport;
