@@ -1,4 +1,5 @@
 const DailyReport = require("../../schemas/DailyReport");
+const Partner = require("../../schemas/Partner");
 
 const updateDailyReport = async (order, user, partnerId) => {
   try {
