@@ -16,4 +16,4 @@ function calculateAge(birthdate) {
   return age;
 }
 
-export default calculateAge;
+module.exports = calculateAge;
