@@ -1,6 +1,3 @@
-const DailyReport = require("../../schemas/DailyReport");
-const Partner = require("../../schemas/Partner");
-
 const updateDailyReport = async (order, user, partnerId) => {
   const currentDate = new Date().toISOString().split("T")[0];
 
@@ -12,7 +9,17 @@ const updateDailyReport = async (order, user, partnerId) => {
   }
 
   // Partner bilgilerini kullanarak verileri hesapla
-  const totalOrders = partner.orders.length;
+  const age = calculateAge(user.birthDate);
+  const male = user.gender === "male" ? 1 : 0;
+  const female = user.gender === "female" ? 1 : 0;
+
+  // Yaş aralıklarını hesapla
+  const ageGroups = {
+    "18-35": age >= 18 && age <= 35 ? 1 : 0,
+    "35-100": age > 35 && age <= 100 ? 1 : 0,
+  };
+
+  const totalOrders = partner.history.length;
   const totalRevenue = partner.totalRevenue;
   const totalUsers = partner.customers.length;
 
@@ -30,14 +37,20 @@ const updateDailyReport = async (order, user, partnerId) => {
     const newReport = new DailyReport({
       partner: partnerId,
       date: currentDate,
-      totalUsers: totalUsers, // Partner'den gelen toplam kullanıcı
-      totalOrders: totalOrders, // Partner'den gelen toplam sipariş
-      totalRevenue: totalRevenue, // Partner'den gelen toplam gelir
+      totalUsers: totalUsers,
+      totalOrders: totalOrders,
+      totalRevenue: totalRevenue,
       differenceUserDaily: totalUsers - (previousReport?.totalUsers || 0),
       differenceOrderDaily: totalOrders - (previousReport?.totalOrders || 0),
       differenceSalesDaily: totalRevenue - (previousReport?.totalRevenue || 0),
-      gender: { male: 0, female: 0 }, // Bu veri ayrıca işlenebilir
-      age: { ["18-35"]: 0, ["35-100"]: 0 }, // Bu veri ayrıca işlenebilir
+      gender: {
+        male: male,
+        female: female,
+      },
+      age: {
+        "18-35": ageGroups["18-35"],
+        "35-100": ageGroups["35-100"],
+      },
     });
 
     await newReport.save();
@@ -61,6 +74,10 @@ const updateDailyReport = async (order, user, partnerId) => {
         differenceUserDaily: totalUsers - todayReport.totalUsers,
         differenceOrderDaily: totalOrders - todayReport.totalOrders,
         differenceSalesDaily: totalRevenue - todayReport.totalRevenue,
+        "gender.male": male,
+        "gender.female": female,
+        "age.18-35": ageGroups["18-35"],
+        "age.35-100": ageGroups["35-100"],
       },
     },
     { new: true }
@@ -71,24 +88,3 @@ const updateDailyReport = async (order, user, partnerId) => {
 
   return updatedReport;
 };
-
-/**
- * Son 30 raporu korur, eski raporları siler.
- */
-const enforceDailyReportLimit = async (partnerId) => {
-  const reports = await DailyReport.find({ partner: partnerId })
-    .sort({ date: 1 }) // Tarihe göre artan sırada sırala
-    .lean();
-
-  if (reports.length > 30) {
-    const excessCount = reports.length - 30;
-
-    // Eski raporları sil
-    const idsToDelete = reports
-      .slice(0, excessCount)
-      .map((report) => report._id);
-    await DailyReport.deleteMany({ _id: { $in: idsToDelete } });
-  }
-};
-
-module.exports = updateDailyReport;
