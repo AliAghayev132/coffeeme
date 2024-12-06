@@ -9,6 +9,7 @@ const { socketMessageSender } = require("../../utils/socket/websokcetUtil");
 const { checkStreakDay } = require("../../utils/user/checkStreak");
 const mailSender = require("../../utils/mailsender");
 const balanceActivity = require("../../utils/user/balanceActivity");
+const updateDailyReport = require("../../utils/partner/updateSalesReport");
 
 async function sendOrderDetails(email, data) {
   try {
@@ -230,6 +231,7 @@ router.put("/:id", validateAccessToken, async (req, res) => {
       user.history.push(order._id);
       user.visitedCoffeeShops.push(partner.shop._id);
       order.items.forEach((item) => user.orderedProducts.push(item.product));
+      updateDailyReport(order, user, partner._id);
       if (user.category !== "premium") {
         if (
           (user.loyalty !== 0 &&

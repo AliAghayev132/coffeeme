@@ -151,7 +151,6 @@ const getCustomers = async (req, res) => {
         },
         {
           path: "history",
-          match: { "rating.product": { $ne: null } }, // rating.product değeri dolu olanları al
           options: { sort: { createdAt: -1 }, limit: 1 },
           select: "rating items",
           populate: {
@@ -161,6 +160,11 @@ const getCustomers = async (req, res) => {
         },
       ],
     });
+
+    partner.customers = await Promise.all()
+    
+    
+    
     return res.status(200).json({
       success: true,
       message: "All customers fetched",
@@ -216,13 +220,11 @@ const getHistory = async (req, res) => {
         .json({ success: false, message: "Partner not found" });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "All history delivered",
-        history: partner.history,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "All history delivered",
+      history: partner.history,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });

@@ -10,7 +10,6 @@ const RecentCloseNotifications = new Schema({
 });
 
 const PartnerSchema = new Schema({
- 
   fullname: {
     type: String,
     required: false,
@@ -85,6 +84,7 @@ const PartnerSchema = new Schema({
       count: { type: Number, default: 0 },
     },
   ],
+  dailyReports: [{ type: Schema.Types.ObjectId, ref: "DailyReport" }],
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);
