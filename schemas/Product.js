@@ -96,10 +96,10 @@ const productSchema = new Schema({
     extras: [additionSchema], // Ekstralar
     syrups: [additionSchema], // Şuruplar
   },
-  // stock: {
-  //   type: Boolean,
-  //   default: true,
-  // },
+  sales: {
+    type: Number,
+    default: 0,
+  },
 });
 
 productSchema.pre("save", function (next) {

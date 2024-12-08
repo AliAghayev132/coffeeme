@@ -59,7 +59,7 @@ const setupServer = () => {
 // WebSocket Setup
 const setupWebSocket = (server) => {
   const wss = new WebSocket.Server({ server });
-  const { handleWebSocketConnection } = require("./utils/socket/websokcetUtil");
+  const { handleWebSocketConnection } = require("./utils/socket/websocketUtil");
   handleWebSocketConnection(wss);
 };
 

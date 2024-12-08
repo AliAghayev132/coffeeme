@@ -6,7 +6,7 @@ const User = require("../../schemas/User");
 const Shop = require("../../schemas/Shop");
 const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
-const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websocketUtil");
 const roundToTwoDecimals = require("../../utils/roundToTwoDecimals");
 const balanceActivity = require("../../utils/user/balanceActivity");
 

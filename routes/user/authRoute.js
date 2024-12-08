@@ -13,7 +13,7 @@ const {
   validateAzerbaijanPhoneNumber,
   validatePassword,
 } = require("../../utils/validation");
-const { USERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const { USERS_CONNECTIONS } = require("../../utils/socket/websocketUtil");
 const { checkStreak } = require("../../utils/user/checkStreak");
 const accountController = require("../../controllers/user/accountController");
 const generateUniqueReferenceCode = require("../../utils/referenceCodeGenerator");
@@ -265,7 +265,9 @@ router.post("/forgot-password-confirm", async (req, res) => {
     ]);
 
     if (!existingUser) {
-      return res.status(400).json({ success: false, message: "User not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
     }
 
     if (!existingOtp) {

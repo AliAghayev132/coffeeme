@@ -67,6 +67,9 @@ const updateDailyReport = async (order, user, partnerId) => {
       return newReport;
     }
 
+    const bestPerformingMembers = await updateBestPerformingMembers(partnerId);
+    const bestSellerProducts = await updateBestSellerProducts(partnerId);
+    
     // Güncelleme işlemi
     const updatedReport = await DailyReport.findOneAndUpdate(
       { date: currentDate, partner: partnerId },
@@ -114,3 +117,23 @@ const enforceDailyReportLimit = async (partnerId) => {
   }
 };
 module.exports = updateDailyReport;
+
+const updateBestPerformingMembers = async (partnerId) => {
+  // Partner'a bağlı kullanıcıları getir ve performans kriterine göre sırala
+  const members = await User.find({ partner: partnerId })
+    .sort({ orders: -1 }) // Örneğin, en fazla sipariş veren üyeleri bul
+    .limit(5) // İlk 5 kullanıcıyı seç
+    .lean();
+
+  return members.map((member) => member._id);
+};
+
+const updateBestSellerProducts = async (partnerId) => {
+  // Partner'a bağlı ürünleri getir ve satış miktarına göre sırala
+  const products = await Product.find({ partner: partnerId })
+    .sort({ sales: -1 }) // Örneğin, en çok satan ürünleri bul
+    .limit(5) // İlk 5 ürünü seç
+    .lean();
+
+  return products.map((product) => product._id);
+};

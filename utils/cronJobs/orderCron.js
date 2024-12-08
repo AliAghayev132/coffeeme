@@ -5,7 +5,7 @@ const cron = require("node-cron");
 const {
   PARTNERS_CONNECTIONS,
   USERS_CONNECTIONS, // Import the USER_CONNECTIONS
-} = require("../socket/websokcetUtil");
+} = require("../socket/websocketUtil");
 
 const EXPIRATION_TIME_MINS = 30;
 const balanceActivity = require("../user/balanceActivity");

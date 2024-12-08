@@ -5,7 +5,7 @@ const Product = require("../../schemas/Product");
 const Referral = require("../../schemas/user/Referral");
 const FingerTips = require("../../schemas/FingerTips");
 
-const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websokcetUtil");
+const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websocketUtil");
 const mailSender = require("../../utils/mailsender");
 
 async function sendOrderDetails(email, data) {
