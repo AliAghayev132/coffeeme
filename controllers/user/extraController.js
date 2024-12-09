@@ -5,24 +5,8 @@ const Product = require("../../schemas/Product");
 const Referral = require("../../schemas/user/Referral");
 const FingerTips = require("../../schemas/FingerTips");
 
-const { PARTNERS_CONNECTIONS } = require("../../utils/socket/websocketUtil");
-const mailSender = require("../../utils/mailsender");
+const sendOrderDetails = require("../../utils/partner/sendOrderDetails");
 
-async function sendOrderDetails(email, data) {
-  try {
-    const mailResponse = await mailSender(
-      email,
-      "Order Details",
-      `<h1>
-        ${data.totalPrice} 
-        ${data.totalDiscountedPrice}
-      </h1>`
-    );
-  } catch (error) {
-    console.log("Error occurred while sending email: ", error);
-    throw error;
-  }
-}
 const updateLocation = async (req, res) => {
   try {
     const { email } = req.user;
@@ -34,7 +18,6 @@ const updateLocation = async (req, res) => {
         .json({ message: "Latitude and Longitude are required" });
     }
 
-    // Kullanıcıyı bul
     const user = await User.findOne({ email });
     if (!user) {
       return res
@@ -42,7 +25,6 @@ const updateLocation = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Kullanıcının konumuna yakın dükkanları bul
     const shops = await Shop.aggregate([
       {
         $geoNear: {
@@ -58,7 +40,6 @@ const updateLocation = async (req, res) => {
       },
     ]);
 
-    // Eğer dükkan bulunduyse partnerleri güncelle
     for (const shop of shops) {
       const partner = await Partner.findOne({ shop: shop._id }).populate(
         "shop"
@@ -66,10 +47,9 @@ const updateLocation = async (req, res) => {
       if (partner) {
         // closeUsers dizisinde kullanıcıyı bul3
         const userInCloseUsers = partner.closeUsers.find(
-          (closeUser) => closeUser.userId.toString() === user._id.toString()
+          (closeUser) => closeUser.user.toString() === user._id.toString()
         );
         if (!userInCloseUsers) {
-          // Kullanıcı closeUsers dizisine ekle
           partner.closeUsers.push({
             user: user._id,
             lastLocationUpdate: Date.now(),
@@ -83,19 +63,15 @@ const updateLocation = async (req, res) => {
             partner.recentCloseNotifications.shift();
           }
 
-          await partner.save(); // Partner kaydet
+          await partner.save();
 
-          if (PARTNERS_CONNECTIONS[partner._id]) {
-            PARTNERS_CONNECTIONS[partner._id].send(
-              JSON.stringify({
-                type: "CLOSE_USER",
-                data: {
-                  firstName: user.firstname,
-                  secondName: user.secondname,
-                },
-              })
-            );
-          }
+          socketMessageSender("partner", partner._id, {
+            type: "CLOSE_USER",
+            data: {
+              firstName: user.firstname,
+              secondName: user.secondname,
+            },
+          });
         }
       }
     }

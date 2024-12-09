@@ -1,3 +1,6 @@
+const mailSender = require("../../utils/mailsender");
+
+
 async function sendOrderDetails(email, data) {
   try {
     const mailResponse = await mailSender(

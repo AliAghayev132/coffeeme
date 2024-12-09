@@ -123,7 +123,10 @@ const updateOrderStatus = async (req, res) => {
     const { status, data } = req.body;
     const { username } = req.user;
 
-    const order = await Order.findById(id).populate("shop user");
+    const order = await Order.findById(id).populate("shop user").populate({
+      path: "items.product",
+      select: "sales",
+    });
     if (!order) {
       return res
         .status(404)
@@ -186,8 +189,12 @@ const updateOrderStatus = async (req, res) => {
       user.orders = user.orders.filter((orderId) => orderId.toString() !== id);
       user.history.push(order._id);
       user.visitedCoffeeShops.push(partner.shop._id);
-      order.items.forEach((item) => user.orderedProducts.push(item.product));
-      updateDailyReport(order, user, partner._id);
+      for (const item of order.items) {
+        item.product.sales += item.quantity;
+        await item.product.save();
+        user.orderedProducts.push(item.product._id);
+      }
+      updateDailyReport(user, partner._id);
       if (user.category !== "premium") {
         if (
           (user.loyalty !== 0 &&
@@ -235,7 +242,6 @@ const updateOrderStatus = async (req, res) => {
       }
     }
 
-    // Notify partner and user via WebSocket
     socketMessageSender("partner", partner._id, {
       type: "ORDER_STATUS",
       state: delivered ? delivered : "UPDATE",
@@ -247,7 +253,6 @@ const updateOrderStatus = async (req, res) => {
       order: order,
     });
 
-    // Save order, partner, and user updates in parallel
     await Promise.all([order.save(), partner.save(), user.save()]);
 
     return res

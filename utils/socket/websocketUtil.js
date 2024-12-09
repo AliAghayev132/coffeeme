@@ -79,7 +79,6 @@ const CONNECTIONS = {
 
 const socketMessageSender = (role, id, data) => {
   const to = CONNECTIONS[role][id];
-
   if (to) to.send(JSON.stringify(data));
 };
 

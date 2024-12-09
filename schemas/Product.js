@@ -103,27 +103,33 @@ const productSchema = new Schema({
 });
 
 productSchema.pre("save", function (next) {
-  this.sizes = this.sizes.map((size) => {
-    size.discountedPrice = calculateDiscountedPrice(size.price, size.discount);
-    return size;
-  });
+  if (this.sizes)
+    this.sizes = this.sizes.map((size) => {
+      size.discountedPrice = calculateDiscountedPrice(
+        size.price,
+        size.discount
+      );
+      return size;
+    });
 
   // Process additions (extras and syrups)
-  this.additions.extras = this.additions.extras.map((extra) => {
-    extra.discountedPrice = calculateDiscountedPrice(
-      extra.price,
-      extra.discount
-    );
-    return extra;
-  });
+  if (this.additions.length > 0) {
+    this.additions.extras = this.additions.extras.map((extra) => {
+      extra.discountedPrice = calculateDiscountedPrice(
+        extra.price,
+        extra.discount
+      );
+      return extra;
+    });
 
-  this.additions.syrups = this.additions.syrups.map((syrup) => {
-    syrup.discountedPrice = calculateDiscountedPrice(
-      syrup.price,
-      syrup.discount
-    );
-    return syrup;
-  });
+    this.additions.syrups = this.additions.syrups.map((syrup) => {
+      syrup.discountedPrice = calculateDiscountedPrice(
+        syrup.price,
+        syrup.discount
+      );
+      return syrup;
+    });
+  }
 
   next();
 });

@@ -3,7 +3,7 @@ const cron = require("node-cron");
 
 cron.schedule("* * * * *", async () => {
   try {
-    const thresholdTime = Date.now() - 60 * 1000;
+    const thresholdTime = Date.now() - 60 * 30 * 1000;
     const partners = await Partner.find({});
 
     for (const partner of partners) {
