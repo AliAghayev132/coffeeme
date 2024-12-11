@@ -1,5 +1,7 @@
 const Partner = require("../../schemas/Partner");
 const Notification = require("../../schemas/Notification");
+const Product = require("../../schemas/Product");
+const Order = require("../../schemas/Order");
 
 const getMenu = async (req, res) => {
   try {
@@ -161,10 +163,38 @@ const getCustomers = async (req, res) => {
       ],
     });
 
-    partner.customers = await Promise.all()
+    partner.customers = await Promise.all(
+      partner.customers.map(async (customer) => {
+        // Get the most recent order for the customer
+        const lastOrderPromise = Order.findOne({ user: customer.user._id })
+          .sort({ _id: -1 }) // Sort by most recent order first
+          .populate("items.product", "name price");
     
+        // Get the most recent rated order for the customer
+        const lastRatedOrderPromise = Order.findOne({
+          user: customer.user._id,
+          "rating.product": { $ne: null }, // Find an order that has a rating
+        })
+          .sort({ _id: -1 }) // Sort by most recent rating
+          .populate("items.product", "name price");
     
+        // Await for both promises to resolve
+        const [lastOrder, lastRatedOrder] = await Promise.all([
+          lastOrderPromise,
+          lastRatedOrderPromise,
+        ]);
     
+        // Return a new object with the customer data and the additional orders
+        return {
+          ...customer._doc, // Spread existing customer data
+          lastOrder,
+          lastRatedOrder,
+        };
+      })
+    );
+
+    console.log(partner.customers);
+
     return res.status(200).json({
       success: true,
       message: "All customers fetched",
@@ -186,8 +216,6 @@ const getCloseUsers = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Partner not found" });
-
-    console.log("Extra Controller", partner.closeUsers);
 
     return res.status(200).json({
       message: "All close users got",
@@ -231,6 +259,76 @@ const getHistory = async (req, res) => {
   }
 };
 
+// GetSales
+const getDailyReportToday = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const partner = await Partner.findOne({ username })
+      .populate({
+        path: "dailyReports",
+        match: { date: new Date().toISOString().split("T")[0] },
+        populate: [
+          {
+            path: "bestPerformingMembers",
+            select: "firstname secondname image",
+          },
+          {
+            path: "bestSellerProducts",
+            select: "name photo",
+          },
+        ],
+      })
+      .lean();
+
+    const results = await Promise.all(
+      partner.dailyReports.map(async (dailyReport) => {
+        const updatedMembers = await Promise.all(
+          dailyReport.bestPerformingMembers.map(async (user) => {
+            const customer = partner.customers.find((customer) => {
+              return customer.user.toString() === user._id.toString();
+            });
+            return { ...user, count: customer ? customer.count : 0 }; // count ekleniyor
+          })
+        );
+
+        const updatedProducts = await Promise.all(
+          dailyReport.bestSellerProducts.map(async (product) => {
+            const updatedProduct = await Product.findById(product._id).select(
+              "sales"
+            );
+            return { ...product, count: updatedProduct.sales }; // count ekleniyor
+          })
+        );
+
+        return {
+          ...dailyReport,
+          bestPerformingMembers: updatedMembers, // Güncellenmiş üyeler atanıyor
+          bestSellerProducts: updatedProducts,
+        };
+      })
+    );
+
+    partner.dailyReports = results;
+
+    if (!partner)
+      return res
+        .status(404)
+        .json({ success: false, message: "Partner not found" });
+
+    const todayReport = partner.dailyReports?.[0];
+
+    res.status(200).json({ success: true, todayReport: todayReport });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Today
+// Last 7 days
+// Month  //20  //27
+// All Time
+// Custom Day
+
 module.exports = {
   getHistory,
   getMenu,
@@ -239,4 +337,5 @@ module.exports = {
   getNotifications,
   getCustomers,
   getCloseUsers,
+  getDailyReportToday,
 };

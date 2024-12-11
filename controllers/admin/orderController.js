@@ -174,14 +174,16 @@ const updateOrderStatus = async (req, res) => {
       }
 
       partner.history.push(order._id);
-      partner.totalRevenue += parseFloat(
+      partner.totalRevenue = parseFloat(
         (
+          partner.totalRevenue +
           order.totalPrice -
           (order.totalPrice * order.shop.discountPercentage) / 100
         ).toFixed(2)
       );
-      partner.balance += parseFloat(
+      partner.balance = parseFloat(
         (
+          partner.balance +
           order.totalPrice -
           (order.totalPrice * order.shop.discountPercentage) / 100
         ).toFixed(2)
@@ -194,7 +196,7 @@ const updateOrderStatus = async (req, res) => {
         await item.product.save();
         user.orderedProducts.push(item.product._id);
       }
-      updateDailyReport(user, partner._id);
+
       if (user.category !== "premium") {
         if (
           (user.loyalty !== 0 &&
@@ -254,6 +256,8 @@ const updateOrderStatus = async (req, res) => {
     });
 
     await Promise.all([order.save(), partner.save(), user.save()]);
+
+    if (status === "delivered") updateDailyReport(user, partner._id);
 
     return res
       .status(200)

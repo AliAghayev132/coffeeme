@@ -106,16 +106,18 @@ const updateDailyReport = async (user, partnerId) => {
     });
 
     const totalUsers = partner.customers.length;
+    console.log({totalUsers});
+    
     const totalOrders = partner.history.length;
     const totalRevenue = partner.totalRevenue;
     const bestPerformingMembers = await updateBestPerformingMembers(partnerId);
     const bestSellerProducts = await updateBestSellerProducts(partnerId);
+    const previousReport = await DailyReport.findOne({
+      partner: partnerId,
+      date: { $lt: currentDate },
+    }).sort({ date: -1 });
 
     if (!todayReport) {
-      const previousReport = await DailyReport.findOne({
-        partner: partnerId,
-      }).sort({ date: -1 });
-
       const newReport = new DailyReport({
         partner: partnerId,
         date: currentDate,
@@ -162,11 +164,11 @@ const updateDailyReport = async (user, partnerId) => {
           "gender.female": customersStats.genderCounts.female,
           "age.18-35": customersStats.ageGroups["18-35"],
           "age.35-100": customersStats.ageGroups["35-100"],
-        },
-        $inc: {
-          differenceUserDaily: totalUsers - todayReport.totalUsers,
-          differenceOrderDaily: totalOrders - todayReport.totalOrders,
-          differenceSalesDaily: totalRevenue - todayReport.totalRevenue,
+          differenceUserDaily: totalUsers - (previousReport?.totalUsers || 0),
+          differenceOrderDaily:
+            totalOrders - (previousReport?.totalOrders || 0),
+          differenceSalesDaily:
+            totalRevenue - (previousReport?.totalRevenue || 0),
         },
       },
       { new: true }
@@ -192,7 +194,7 @@ const enforceDailyReportLimit = async (partnerId) => {
     // Get IDs of old reports
     const idsToDeleteFromReports = reports
       .slice(0, excessCount)
-      .map(report => report._id);
+      .map((report) => report._id);
 
     // Delete old reports from DailyReport collection
     await DailyReport.deleteMany({ _id: { $in: idsToDeleteFromReports } });
@@ -200,7 +202,7 @@ const enforceDailyReportLimit = async (partnerId) => {
     // Delete old reports from the partner's dailyReports array
     const partner = await Partner.findById(partnerId);
     partner.dailyReports = partner.dailyReports.filter(
-      reportId => !idsToDeleteFromReports.includes(reportId.toString())
+      (reportId) => !idsToDeleteFromReports.includes(reportId.toString())
     );
 
     await partner.save();

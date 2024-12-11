@@ -35,7 +35,7 @@ const updateLocation = async (req, res) => {
           distanceField: "distance", // Mesafeyi saklayacağımız alan
           spherical: true, // Spherical model kullan
           minDistance: 0, // Mesafe sıfırdan başlasın
-          maxDistance: 500,
+          maxDistance: 50000000000,
         },
       },
     ]);
@@ -52,7 +52,7 @@ const updateLocation = async (req, res) => {
         if (!userInCloseUsers) {
           partner.closeUsers.push({
             user: user._id,
-            lastLocationUpdate: Date.now(),
+            lastLocationUpdate: new Date(),
           });
 
           partner.recentCloseNotifications.push({

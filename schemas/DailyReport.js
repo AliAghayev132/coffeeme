@@ -58,4 +58,3 @@ const DailyReportSchema = new Schema({
 
 const DailyReport = mongoose.model("DailyReport", DailyReportSchema);
 module.exports = DailyReport;
-
