@@ -13,7 +13,7 @@ const PartnerSchema = new Schema({
   distance: {
     type: Number,
     required: false,
-    default: 5,ß
+    default: 5,
   },
   email: {
     type: String,
