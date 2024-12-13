@@ -10,6 +10,11 @@ const RecentCloseNotifications = new Schema({
 });
 
 const PartnerSchema = new Schema({
+  distance: {
+    type: Number,
+    required: false,
+    default: 5,ß
+  },
   email: {
     type: String,
     required: false,
