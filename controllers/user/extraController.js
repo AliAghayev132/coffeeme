@@ -6,6 +6,7 @@ const Referral = require("../../schemas/user/Referral");
 const FingerTips = require("../../schemas/FingerTips");
 
 const sendOrderDetails = require("../../utils/partner/sendOrderDetails");
+const {socketMessageSender} = require("../../utils/socket/websocketUtil");
 
 const updateLocation = async (req, res) => {
   try {

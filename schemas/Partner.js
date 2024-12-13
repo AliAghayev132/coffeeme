@@ -10,6 +10,10 @@ const RecentCloseNotifications = new Schema({
 });
 
 const PartnerSchema = new Schema({
+  email: {
+    type: String,
+    required: false,
+  },
   fullname: {
     type: String,
     required: false,

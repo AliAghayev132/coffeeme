@@ -15,9 +15,7 @@ const getMenu = async (req, res) => {
     });
 
     if (!partner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+      return res.status(404).json({ success: false, message: "Partner not found" });
     }
 
     // Partner ve shop bilgileri döndürülüyor
@@ -38,8 +36,7 @@ const getSubscribers = async (req, res) => {
     const { username } = req.user;
     const partner = await Partner.findOne({ username }).populate({
       path: "followers",
-      select:
-        "firstname secondname birthDate gender extraDetails.mostGoingCoffeeShop",
+      select: "firstname secondname birthDate gender extraDetails.mostGoingCoffeeShop",
       populate: {
         path: "extraDetails.mostGoingCoffeeShop",
         select: "name",
@@ -47,9 +44,7 @@ const getSubscribers = async (req, res) => {
     });
 
     if (!partner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+      return res.status(404).json({ success: false, message: "Partner not found" });
     }
 
     // Partner ve shop bilgileri döndürülüyor
@@ -67,9 +62,7 @@ const createNewNotification = async (req, res) => {
     const partner = await Partner.findOne({ username });
 
     if (!partner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+      return res.status(404).json({ success: false, message: "Partner not found" });
     }
 
     // İstekten bildirim verilerini al
@@ -113,14 +106,10 @@ const createNewNotification = async (req, res) => {
 const getNotifications = async (req, res) => {
   try {
     const { username } = req.user; // Kullanıcı adını al
-    const partner = await Partner.findOne({ username }).populate(
-      "notifications"
-    ); // Partneri bul ve notifications alanını doldur
+    const partner = await Partner.findOne({ username }).populate("notifications"); // Partneri bul ve notifications alanını doldur
 
     if (!partner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+      return res.status(404).json({ success: false, message: "Partner not found" });
     }
 
     // Partnerin bildirimlerini döndür
@@ -130,9 +119,7 @@ const getNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error(error); // Hata günlüğü
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 const getCustomers = async (req, res) => {
@@ -140,8 +127,7 @@ const getCustomers = async (req, res) => {
     const { username } = req.user;
     const partner = await Partner.findOne({ username }).populate({
       path: "customers.user",
-      select:
-        "firstname secondname gender birthDate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
+      select: "firstname secondname gender birthDate extraDetails overAllRating orders", // Kullanıcı bilgileri ve extraDetails
       populate: [
         {
           path: "extraDetails.mostOrderedThreeProducts", // En çok sipariş edilen 3 ürünü ekle
@@ -163,13 +149,13 @@ const getCustomers = async (req, res) => {
       ],
     });
 
-    partner.customers = await Promise.all(
+    const updatedCustomers = await Promise.all(
       partner.customers.map(async (customer) => {
         // Get the most recent order for the customer
         const lastOrderPromise = Order.findOne({ user: customer.user._id })
           .sort({ _id: -1 }) // Sort by most recent order first
           .populate("items.product", "name price");
-    
+
         // Get the most recent rated order for the customer
         const lastRatedOrderPromise = Order.findOne({
           user: customer.user._id,
@@ -177,13 +163,13 @@ const getCustomers = async (req, res) => {
         })
           .sort({ _id: -1 }) // Sort by most recent rating
           .populate("items.product", "name price");
-    
+
         // Await for both promises to resolve
-        const [lastOrder, lastRatedOrder] = await Promise.all([
-          lastOrderPromise,
-          lastRatedOrderPromise,
-        ]);
-    
+        const [lastOrder, lastRatedOrder] = await Promise.all([lastOrderPromise, lastRatedOrderPromise]);
+
+
+        // console.log({lastOrder,lastRatedOrder});
+        
         // Return a new object with the customer data and the additional orders
         return {
           ...customer._doc, // Spread existing customer data
@@ -193,12 +179,10 @@ const getCustomers = async (req, res) => {
       })
     );
 
-    console.log(partner.customers);
-
     return res.status(200).json({
       success: true,
       message: "All customers fetched",
-      customers: partner.customers,
+      customers: updatedCustomers,
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -212,10 +196,7 @@ const getCloseUsers = async (req, res) => {
       path: "closeUsers.user", // closeUsers'daki user alanını doldur
       select: "firstname secondname image lastLocationUpdate", // Geri dönecek alanlar
     });
-    if (!partner)
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+    if (!partner) return res.status(404).json({ success: false, message: "Partner not found" });
 
     return res.status(200).json({
       message: "All close users got",
@@ -243,9 +224,7 @@ const getHistory = async (req, res) => {
       ],
     });
     if (!partner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+      return res.status(404).json({ success: false, message: "Partner not found" });
     }
 
     return res.status(200).json({
@@ -255,6 +234,29 @@ const getHistory = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const recentCloseNotifications = async (req, res) => {
+  try {
+    const { username } = req.user;
+
+    const partner = await Partner.findOne({ username }).populate({
+      path: "recentCloseNotifications",
+      populate: {
+        path: "user", // User bilgilerini populate et
+        select: "firstname secondname birthDate gender image", // Gerekli alanları seç
+      },
+    });
+
+    if (!partner) return res.status(404).json({ success: false, message: "Partner not found" });
+
+    return res.status(200).json({
+      message: "All close users got",
+      success: true,
+      notifications: partner.recentCloseNotifications,
+    });
+  } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -293,9 +295,7 @@ const getDailyReportToday = async (req, res) => {
 
         const updatedProducts = await Promise.all(
           dailyReport.bestSellerProducts.map(async (product) => {
-            const updatedProduct = await Product.findById(product._id).select(
-              "sales"
-            );
+            const updatedProduct = await Product.findById(product._id).select("sales");
             return { ...product, count: updatedProduct.sales }; // count ekleniyor
           })
         );
@@ -310,10 +310,7 @@ const getDailyReportToday = async (req, res) => {
 
     partner.dailyReports = results;
 
-    if (!partner)
-      return res
-        .status(404)
-        .json({ success: false, message: "Partner not found" });
+    if (!partner) return res.status(404).json({ success: false, message: "Partner not found" });
 
     const todayReport = partner.dailyReports?.[0];
 
@@ -322,12 +319,6 @@ const getDailyReportToday = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// Today
-// Last 7 days
-// Month  //20  //27
-// All Time
-// Custom Day
 
 module.exports = {
   getHistory,
@@ -338,4 +329,5 @@ module.exports = {
   getCustomers,
   getCloseUsers,
   getDailyReportToday,
+  recentCloseNotifications,
 };
