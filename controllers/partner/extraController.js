@@ -320,6 +320,10 @@ const getDailyReportToday = async (req, res) => {
   }
 };
 
+
+
+
+
 module.exports = {
   getHistory,
   getMenu,

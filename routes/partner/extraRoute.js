@@ -12,7 +12,4 @@ router.get("/notifications", validateAccessToken, extraController.getNotificatio
 router.post("/notifications", validateAccessToken, extraController.createNewNotification);
 router.get("/history", validateAccessToken, extraController.getHistory);
 
-// Sales Report
-router.get("/daily-report-today", validateAccessToken, extraController.getDailyReportToday);
-
 module.exports = router;

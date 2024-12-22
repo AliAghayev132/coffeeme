@@ -1,10 +1,10 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
-const mailSender = async (email, title, body) => {
+const mailSender = async (email, title, body, attachments = []) => {
   try {
     // Create a Transporter to send emails
     let transporter = nodemailer.createTransport({
-      service:"",
+      service: "",
       host: process.env.MAIL_HOST,
       port: 587, // or 587 if not using SSL
       secure: false, // true for 465, false for other ports like 587
@@ -19,9 +19,11 @@ const mailSender = async (email, title, body) => {
       to: email,
       subject: title,
       html: body,
+      attachments: attachments,
     });
     return info;
   } catch (error) {
+    console.log(error);
   }
 };
 module.exports = mailSender;

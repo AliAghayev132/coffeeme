@@ -8,11 +8,6 @@ const otpSchema = new Schema({
     require: true,
     index: true,
   },
-  phone: {
-    type: String,
-    require: true,
-    index: true,
-  },
   otp: {
     type: String,
     require: true,

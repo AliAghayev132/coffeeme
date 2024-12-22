@@ -1,6 +1,5 @@
-const User = require("../../schemas/User");
+
 const Partner = require("../../schemas/Partner");
-const Product = require("../../schemas/Product");
 const DailyReport = require("../../schemas/DailyReport");
 const calculateAge = require("../../utils/user/calculateAge");
 

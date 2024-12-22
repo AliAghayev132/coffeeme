@@ -8,11 +8,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const otpGenerator = require("../../utils/otpGenerator");
 const validateAccessToken = require("../../middlewares/validateToken");
-const {
-  validateEmail,
-  validateAzerbaijanPhoneNumber,
-  validatePassword,
-} = require("../../utils/validation");
+const { validateEmail, validateAzerbaijanPhoneNumber, validatePassword } = require("../../utils/validation");
 const { USERS_CONNECTIONS } = require("../../utils/socket/websocketUtil");
 const { checkStreak } = require("../../utils/user/checkStreak");
 const accountController = require("../../controllers/user/accountController");
@@ -36,67 +32,43 @@ const upload = multer({
 
 // Register
 router.post("/send-otp", async (req, res) => {
-  const { email, phone } = req.body;
+  const { email } = req.body;
 
   try {
-    if (!validateEmail(email))
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is not valid" });
+    if (!validateEmail(email)) return res.status(400).json({ success: false, message: "Email is not valid" });
 
-    if (!validateAzerbaijanPhoneNumber(phone))
-      return res
-        .status(400)
-        .json({ success: false, message: "Phone Number is not valid" });
+    // if (!validateAzerbaijanPhoneNumber(phone)) return res.status(400).json({ success: false, message: "Phone Number is not valid" });
 
-    const [existingUser, existingOtp] = await Promise.all([
-      User.findOne({ $or: [{ email }, { phone }] }),
-      Otp.findOneAndDelete({ email }),
-    ]);
+    const [existingUser, existingOtp] = await Promise.all([User.findOne({ email }), Otp.findOneAndDelete({ email })]);
 
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message:
-          existingUser.email === email
-            ? "Email already exists"
-            : "Phone Number already exists",
+        message: existingUser.email === email ? "Email already exists" : "Phone Number already exists",
       });
     }
 
     let otp = await otpGenerator();
 
-    const newOtp = await Otp.create({ email, otp, phone });
+    const newOtp = await Otp.create({ email, otp });
     return res.status(200).json({
       success: true,
       createdAt: newOtp.createdAt,
       message: "OTP sent successfully",
     });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({ message: "Internal server error" });
   }
 });
 router.post("/verify-otp", async (req, res) => {
   try {
-    const {
-      email,
-      phone,
-      birthDate,
-      gender,
-      password,
-      otp,
-      firstname,
-      secondname,
-    } = req.body;
-    if (!phone || !email || !birthDate || !gender || !otp) {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
       return res.status(400).json({
         error: "All fields are required",
       });
-    }
-    if (!validatePassword(password)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Your password is not valid" });
     }
     const existingEmail = await Otp.findOne({ email });
 
@@ -105,22 +77,46 @@ router.post("/verify-otp", async (req, res) => {
         error: "No time left for otp",
       });
 
-    if (existingEmail.phone !== phone) {
-      return res.status(400).json({
-        sucess: false,
-        message: "Your registered phone number is different",
-      });
+    if (existingEmail.otp !== otp) {
+      return res.status(400).json({ success: false, message: "Your otp is not valid" });
     }
 
+    return res.status(201).json({ success: true, message: "Otp is verified" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+router.post("/create-account", async (req, res) => {
+  try {
+    const { email, phone, birthDate, gender, password, otp, firstname, secondname } = req.body;
+    if (!phone || !email || !birthDate || !gender || !otp) {
+      return res.status(400).json({
+        error: "All fields are required",
+      });
+    }
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, message: "Your password is not valid" });
+    }
+    const existingEmail = await Otp.findOne({ email });
+
+    const phoneUser = await User.findOne({ phone });
+    if (phoneUser) {
+      return res.status(400).json({ message: "This phone number already registered", success: false });
+    }
+    if (!existingEmail)
+      return res.status(400).json({
+        error: "No time left for otp",
+      });
+
     if (existingEmail.otp !== otp) {
-      return res
-        .status(400)
-        .json({ sucess: false, message: "Your otp is not valid" });
+      return res.status(400).json({ success: false, message: "Your otp is not valid" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     let referralCode = null;
     let existingUser = null;
+
 
     do {
       referralCode = generateUniqueReferenceCode();
@@ -144,14 +140,24 @@ router.post("/verify-otp", async (req, res) => {
 
     await newUser.save();
     await Otp.deleteOne({ email });
-    return res
-      .status(201)
-      .json({ success: true, message: "User registered successfully" });
+    return res.status(201).json({ success: true, message: "User registered successfully" });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+router.post("/check-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ success: false, message: "This email already used" });
+    }
+
+    res.status(200).json({ success: true, message: "Email successfully checked" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 // Change Password
@@ -174,24 +180,18 @@ router.put("/change-password", validateAccessToken, async (req, res) => {
     }
 
     if (!validatePassword(newPassword)) {
-      return res
-        .status(400)
-        .json({ sucess: false, message: "New password is not valid" });
+      return res.status(400).json({ sucess: false, message: "New password is not valid" });
     }
 
     const isOldPasswordValid = bcrypt.compare(oldPassword, user.password);
     if (!isOldPasswordValid) {
-      return res
-        .status(400)
-        .json({ sucess: false, message: "Old password is incorrect" });
+      return res.status(400).json({ sucess: false, message: "Old password is incorrect" });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
-    return res
-      .status(200)
-      .json({ success: true, message: "Password successfully changed" });
+    return res.status(200).json({ success: true, message: "Password successfully changed" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -201,10 +201,7 @@ router.put("/change-password", validateAccessToken, async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-    const [existingUser, existingOtp] = await Promise.all([
-      User.findOne({ email }),
-      Otp.findOne({ email }),
-    ]);
+    const [existingUser, existingOtp] = await Promise.all([User.findOne({ email }), Otp.findOne({ email })]);
 
     if (!existingUser) {
       return res.status(400).json({ sucess: false, message: "User not found" });
@@ -225,25 +222,15 @@ router.post("/forgot-password", async (req, res) => {
 router.post("/forgot-password-otp-confirm", async (req, res) => {
   try {
     const { otp, email } = req.body;
-    const [existingUser, existingOtp] = await Promise.all([
-      User.findOne({ email }),
-      Otp.findOne({ otp }),
-    ]);
+    const [existingUser, existingOtp] = await Promise.all([User.findOne({ email }), Otp.findOne({ otp })]);
 
-    if (!existingUser)
-      return res.status(400).json({ sucess: false, message: "User not found" });
+    if (!existingUser) return res.status(400).json({ sucess: false, message: "User not found" });
 
-    if (!existingOtp)
-      return res.status(400).json({ sucess: false, message: "Invalid OTP" });
+    if (!existingOtp) return res.status(400).json({ sucess: false, message: "Invalid OTP" });
 
-    if (existingOtp.email !== email)
-      return res
-        .status(400)
-        .json({ sucess: false, message: "Email is different" });
+    if (existingOtp.email !== email) return res.status(400).json({ sucess: false, message: "Email is different" });
 
-    return res
-      .status(200)
-      .json({ sucess: true, message: "Otp is successfully delivered" });
+    return res.status(200).json({ sucess: true, message: "Otp is successfully delivered" });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: "Internal server error" });
@@ -254,20 +241,13 @@ router.post("/forgot-password-confirm", async (req, res) => {
     const { otp, email, password } = req.body;
 
     if (!validatePassword(password)) {
-      return res
-        .status(400)
-        .json({ sucess: false, message: "Password is not valid" });
+      return res.status(400).json({ success: false, message: "Password is not valid" });
     }
 
-    const [existingUser, existingOtp] = await Promise.all([
-      User.findOne({ email }),
-      Otp.findOne({ otp }),
-    ]);
+    const [existingUser, existingOtp] = await Promise.all([User.findOne({ email }), Otp.findOne({ otp })]);
 
     if (!existingUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
 
     if (!existingOtp) {
@@ -275,25 +255,19 @@ router.post("/forgot-password-confirm", async (req, res) => {
     }
 
     if (existingOtp.email !== email) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is different" });
+      return res.status(400).json({ success: false, message: "Email is different" });
     }
 
     const passwordMatch = await bcrypt.compare(password, existingUser.password);
     if (passwordMatch) {
-      return res
-        .status(400)
-        .json({ error: "Your new password is the same as the old password" });
+      return res.status(400).json({ error: "Your new password is the same as the old password" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     existingUser.password = hashedPassword;
 
     await existingUser.save();
     await Otp.deleteOne({ otp });
-    return res
-      .status(200)
-      .json({ success: true, message: "Password reset successfully" });
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error("Error during password reset:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -346,16 +320,12 @@ router.post("/update-fingertips", validateAccessToken, async (req, res) => {
     const { fingerTips } = req.body;
     const { email } = req.user;
     if (!fingerTips) {
-      return res
-        .status(400)
-        .json({ success: false, message: "FingerTips are required" });
+      return res.status(400).json({ success: false, message: "FingerTips are required" });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
     if (!user.fingerTips) {
       user.fingerTips = fingerTips;
@@ -366,16 +336,13 @@ router.post("/update-fingertips", validateAccessToken, async (req, res) => {
         fingerTips: user.fingerTips,
       });
     } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "FingerTips already set" });
+      return res.status(400).json({ success: false, message: "FingerTips already set" });
     }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal Server error" });
   }
 });
-
 // Refresh Access Token
 router.post("/refresh-token", async (req, res) => {
   try {
@@ -399,9 +366,7 @@ router.get("/user", validateAccessToken, async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User Not found" });
+      return res.status(404).json({ success: false, message: "User Not found" });
     }
     if (!checkStreak({ streak: user.streak })) {
       user.streak = {
@@ -441,11 +406,7 @@ router.post("/edit-account", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
     const data = req.body;
-    const user = await User.findOneAndUpdate(
-      { email },
-      { ...data },
-      { new: true }
-    );
+    const user = await User.findOneAndUpdate({ email }, { ...data }, { new: true });
     if (!user) return res.status(404).json({ error: "User not found" });
     user.password = undefined;
     return res.status(200).json({ message: "User successfullt edited", user });

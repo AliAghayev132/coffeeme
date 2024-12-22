@@ -29,7 +29,7 @@ router.get("/next", validateAccessToken, async (req, res) => {
 router.put("/:id", validateAccessToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, shopPercentage, fullname, email = "", distance = 5 } = req.body;
+    const { username, shopPercentage, fullname, email = "", distance = 5 } = req.body;
     const partner = await Partner.findById(id);
 
     if (!username || !password || !shopPercentage) {
@@ -47,6 +47,29 @@ router.put("/:id", validateAccessToken, async (req, res) => {
     partner.shopPercentage = shopPercentage;
     partner.email = email;
     partner.distance = distance;
+    await partner.save();
+    return res.status(200).json({ success: true, message: "Partner edited successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+router.put("/edit-password/:id", validateAccessToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+    const partner = await Partner.findById(id);
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: "All Fields are required" });
+    }
+
+    if (!partner) {
+      return res.status(404).json({ success: false, message: "Partner not found" });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    partner.password = hashedPassword;
     await partner.save();
     return res.status(200).json({ success: true, message: "Partner edited successfully" });
   } catch (error) {

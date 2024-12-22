@@ -94,6 +94,18 @@ const PartnerSchema = new Schema({
     },
   ],
   dailyReports: [{ type: Schema.Types.ObjectId, ref: "DailyReport" }],
+  timers: {
+    csv: {
+      tryCount: {
+        type: Number,
+        default: 0,
+      },
+      date: {
+        type: Date,
+        default: Date.now(),
+      },
+    },
+  },
 });
 
 const Partner = mongoose.model("Partner", PartnerSchema);

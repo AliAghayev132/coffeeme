@@ -5,9 +5,6 @@ const withdrawBalance = async (req, res) => {
   try {
     const { username } = req.user;
     const { amount } = req.body;
-
-    console.log({ username, amount });
-
     // Partneri bulma
     const partner = await Partner.findOne({ username });
     if (!partner) {
