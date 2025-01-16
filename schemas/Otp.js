@@ -17,7 +17,6 @@ const otpSchema = new Schema({
     default: Date.now,
     expires: "2m",
   },
-
 });
 
 async function sendVerificationEmail(email, otp) {
@@ -36,6 +35,7 @@ async function sendVerificationEmail(email, otp) {
 
 otpSchema.pre("save", async function (next) {
   if (this.isNew) {
+    console.log(this.email, this.otp);
     setImmediate(async () => {
       try {
         await sendVerificationEmail(this.email, this.otp);
