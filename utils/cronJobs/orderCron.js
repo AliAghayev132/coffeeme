@@ -7,7 +7,7 @@ const {
   USERS_CONNECTIONS, // Import the USER_CONNECTIONS
 } = require("../socket/websocketUtil");
 
-const EXPIRATION_TIME_MINS = 30;
+const EXPIRATION_TIME_MINS = 1;
 const balanceActivity = require("../user/balanceActivity");
 
 const cancelExpiredOrders = async () => {
@@ -82,6 +82,7 @@ const handleUserHistory = async (order) => {
             shopName: order.shop.name,
             shopShortAddress: order.shop.shortAddress,
             products: order.items.product,
+            id: order.id
           },
         })
       );

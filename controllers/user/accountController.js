@@ -1,54 +1,40 @@
-const multer = require("multer");
+// Models
 const User = require("../../schemas/User");
-const path = require("path");
-const fs = require("fs");
-
-const storage = (folderName) =>
-  multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, `public/uploads/${folderName}/`);
-    },
-    filename: function (req, file, cb) {
-      cb(null, req.user._id + Math.random() + path.extname(file.originalname));
-    },
-});
-
-const upload = multer({
-  storage: storage("profile-photos"),
-  limits: { fileSize: 1024 * 1024 * 10 }, // Maksimum dosya boyutu: 10MB
-}).single("photo");
+// Services
+const { FileControlService } = require("../../services/FileControlService");
+const { FileUploadService } = require("../../services/FileUploadService");
+// Path
+const { ProfilePhotoPath } = require("../../constants/paths");
+const { handleFileName } = require("../../utils/core/handleFileName");
 
 const uploadProfilePhoto = async (req, res) => {
   try {
     const { email } = req.user;
     const user = await User.findOne({ email });
-
     if (!user) {
       return res
         .status(400)
         .json({ success: false, message: "User not found" });
     }
     req.user._id = user._id;
-    const oldImagePath = `public/uploads/profile-photos/${user.image}`;
-    if (user.image && fs.existsSync(oldImagePath)) {
-      fs.unlinkSync(oldImagePath);
-    }
-    upload(req, res, async (err) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ message: "File upload error" });
+    const uploadedFile = req.files?.photo;
+    if (uploadedFile) {
+      uploadedFile.name = handleFileName({ file: uploadedFile, newName: user._id });
+      await FileUploadService.Upload({ file: uploadedFile, uploadPath: `${ProfilePhotoPath}` })
+      if (user.image) {
+        FileControlService.Delete({ filePath: `${ProfilePhotoPath}/${user.image}` });
       }
-      // Yükleme başarılıysa, dosya yolu
-      const imagePath = req.file.filename; // Dosya adını al
-      user.image = imagePath; // Kullanıcının görüntüsünü güncelle
-      await user.save(); // Kullanıcıyı kaydet
-      user.password = undefined; // Şifreyi gizle
-      return res
-        .status(201)
-        .json({ success: true, message: "Photo Updated Successfully", user });
-    });
+      user.image = uploadedFile.name;
+    } else {
+      return res.status(404).json({ success: false, message: "Uploaded file not found" })
+    }
+
+    await user.save();
+    return res
+      .status(201)
+      .json({ success: true, message: "Photo Updated Successfully" });
+
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

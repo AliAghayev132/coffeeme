@@ -8,6 +8,7 @@ const WebSocket = require("ws");
 const https = require("https");
 const http = require("http");
 const mongoose = require("mongoose");
+const fileUpload = require("express-fileupload");
 require("dotenv").config();
 require("./utils/cronJobs/setupCron");
 
@@ -28,6 +29,9 @@ const setupMiddleware = () => {
   );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(fileUpload({
+    limits: { fileSize: 10 * 1024 * 1024 },
+  }));
 };
 
 // HTTPS Server Setup

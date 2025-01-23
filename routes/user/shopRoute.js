@@ -6,6 +6,11 @@ const Partner = require("../../schemas/Partner");
 const validateAccessToken = require("../../middlewares/validateToken");
 const calculateWalkingTimes = require("../../utils/calculateWalkingTimes");
 const User = require("../../schemas/User");
+// NOTE: Controllers
+const shopController = require("../../controllers/user/shopController");
+
+
+
 
 // Favorite Shop
 
@@ -196,11 +201,11 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
           price: item.sizes.length > 0 ? item.sizes[0].price : 0,
           shop: item.shop
             ? {
-                // Include shop details if available
-                _id: item.shop._id,
-                name: item.shop.name,
-                shortAddress: item.shop.shortAddress,
-              }
+              // Include shop details if available
+              _id: item.shop._id,
+              name: item.shop.name,
+              shortAddress: item.shop.shortAddress,
+            }
             : null,
           itemType: "Product",
         };
@@ -274,6 +279,7 @@ router.get("/search/:query", validateAccessToken, async (req, res) => {
       .json({ success: false, message: "Server error", error });
   }
 });
+router.post("/search/remove", validateAccessToken, shopController.removeFromRecent);
 router.post("/search/clicked", validateAccessToken, async (req, res) => {
   try {
     const { itemId, itemType } = req.body; // Extract itemId and itemType from request body
@@ -452,7 +458,7 @@ router.get("/follow", validateAccessToken, async (req, res) => {
   } catch (error) {
     console.log(error);
     return res
-    
+
       .status(500)
       .json({ success: false, message: "Server error", error });
   }
@@ -553,7 +559,7 @@ router.delete("/follow", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 });
-router.get("/home", validateAccessToken, async (req, res) => {});
+router.get("/home", validateAccessToken, async (req, res) => { });
 router.get("/nearest", validateAccessToken, async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
