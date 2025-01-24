@@ -161,42 +161,7 @@ router.post("/check-email", async (req, res) => {
   }
 });
 // Change Password
-//! Bitir
-router.put("/change-password", validateAccessToken, async (req, res) => {
-  try {
-    const { oldPassword, newPassword } = req.body;
-    const { email } = req.user;
-    const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({ sucess: false, message: "User not found" });
-    }
-
-    if (oldPassword === newPassword) {
-      return res.status(400).json({
-        sucess: false,
-        message: "Old password and new password cannot be the same",
-      });
-    }
-
-    if (!validatePassword(newPassword)) {
-      return res.status(400).json({ sucess: false, message: "New password is not valid" });
-    }
-
-    const isOldPasswordValid = bcrypt.compare(oldPassword, user.password);
-    if (!isOldPasswordValid) {
-      return res.status(400).json({ sucess: false, message: "Old password is incorrect" });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await user.save();
-    return res.status(200).json({ success: true, message: "Password successfully changed" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
 // Forgot Password
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -273,6 +238,44 @@ router.post("/forgot-password-confirm", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+router.post("/change-password", validateAccessToken, async (req, res) => {
+  try {
+    const { email } = req.user;
+    const user = await User.findOne({ email })
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User Not found" });
+    }
+
+    const { oldPassword, password } = req.body;
+
+    if (oldPassword === password) {
+      return res.status(400).json({
+        sucess: false,
+        message: "Old password and new password cannot be the same",
+      });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ sucess: false, message: "New password is not valid" });
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isOldPasswordValid) {
+      return res.status(400).json({ sucess: false, message: "Invalid Credentials" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+    return res.status(200).json({ success: true, message: "Password successfully changed" });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" })
+  }
+})
 // Login
 router.post("/login", async (req, res) => {
   try {
@@ -402,6 +405,11 @@ router.post(
   validateAccessToken, // Middleware to validate JWT and extract user info
   accountController.uploadProfilePhoto
 );
+router.delete(
+  "/delete-image",
+  validateAccessToken,
+  accountController.deleteProfilePhoto
+)
 router.post("/edit-account", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
@@ -415,5 +423,7 @@ router.post("/edit-account", validateAccessToken, async (req, res) => {
     return res.status(400).json({ message: "Internal server error" });
   }
 });
+// Account Status
+router.post("/delete-account", validateAccessToken, accountController.deleteAccount)
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { getAzerbaijanTime } = require("../utils/date/dateUtils");
 const Schema = mongoose.Schema;
 
 const balanceActivitySchema = new Schema({
@@ -21,20 +22,57 @@ const balanceActivitySchema = new Schema({
   },
 });
 
+
+
 const userSchema = new Schema(
   {
-    isOnline: {
-      type: Boolean,
-      default: false,
+    online: {
+      is: {
+        type: Boolean,
+        default: false,
+      },
+      lastTimeDate: {
+        type: Date,
+        default: null,
+      }
     },
-    firstname: { type: String, default: null, required: true },
-    secondname: { type: String, default: null, required: true },
-    image: { type: String, default: null },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    birthDate: { type: Date, required: true, default: Date.now() },
-    gender: { type: String, enum: ["female", "male"], required: true },
+    firstname: {
+      type: String,
+      default: null,
+      required: true
+    },
+    secondname: {
+      type: String,
+      default: null,
+      required: true
+    },
+    image: {
+      type: String,
+      default: null
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    phone: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    password: {
+      type: String,
+      required: true
+    },
+    birthDate: {
+      type: Date,
+      required: true,
+    },
+    gender: {
+      type: String,
+      enum: ["female", "male"],
+      required: true
+    },
     category: {
       type: String,
       enum: ["standard", "premium", "streakPremium"],
@@ -135,6 +173,17 @@ const userSchema = new Schema(
     ],
     notifications: [{ type: Schema.Types.ObjectId, ref: "Notification" }],
     balanceActivities: [balanceActivitySchema],
+    accountStatus: {
+      status: {
+        type: String,
+        enum: ["active", "deleted", "blocked"],
+        default: "active"
+      },
+      createdAt: {
+        type: Date,
+        default: getAzerbaijanTime
+      }
+    }
   },
 
   { versionKey: false }
