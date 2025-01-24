@@ -1,5 +1,5 @@
 const ProfilePhotoPath = "public/uploads/profile-photos";
 
-export {
+module.exports = {
     ProfilePhotoPath
 }
