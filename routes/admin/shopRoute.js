@@ -23,7 +23,6 @@ const storage = multer.diskStorage({
   },
 });
 const Partner = require("../../schemas/Partner");
-const { log } = require("console");
 const upload = multer({ storage: storage });
 router.post(
   "/",

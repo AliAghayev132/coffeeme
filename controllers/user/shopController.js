@@ -3,7 +3,6 @@ const User = require("../../schemas/User");
 
 // Search Methods
 const removeFromRecent = async (req, res) => {
-    console.log("removeFromRecent");
     
     try {
         // Params

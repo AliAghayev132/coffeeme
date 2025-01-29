@@ -6,7 +6,7 @@ const Referral = require("../../schemas/user/Referral");
 const FingerTips = require("../../schemas/FingerTips");
 
 const sendOrderDetails = require("../../utils/partner/sendOrderDetails");
-const {socketMessageSender} = require("../../utils/socket/websocketUtil");
+const { socketMessageSender } = require("../../utils/socket/websocketUtil");
 
 const updateLocation = async (req, res) => {
   try {
@@ -156,9 +156,12 @@ const getBestSellers = async (req, res) => {
       .populate({
         path: "shop",
         select: "name shortAddress",
+        match: { isOnline: true }
       })
       .sort({ rating: -1 })
-      .limit(5);
+      .limit(15)
+      .where("stock")
+      .equals(true)
 
     return res.status(200).json({
       success: true,

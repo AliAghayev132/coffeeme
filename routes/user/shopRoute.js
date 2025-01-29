@@ -559,7 +559,6 @@ router.delete("/follow", validateAccessToken, async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 });
-router.get("/home", validateAccessToken, async (req, res) => { });
 router.get("/nearest", validateAccessToken, async (req, res) => {
   try {
     const latitude = parseFloat(req.query.latitude);
@@ -583,7 +582,52 @@ router.get("/nearest", validateAccessToken, async (req, res) => {
           minDistance: 0, // Or just omit this line to have unlimited distance
         },
       },
-      { $limit: 5 },
+      { $limit: 15 },
+    ]);
+    // Yürüyüş sürelerini hesapla
+    const resultsWithTimes = shops.map((shop) => {
+      const walkingTimes = calculateWalkingTimes(
+        parseFloat(latitude),
+        parseFloat(longitude),
+        shop.location.coordinates[1], // mağaza enlemi
+        shop.location.coordinates[0] // mağaza boylamı
+      );
+
+      return {
+        ...shop,
+        walkingTimes,
+      };
+    });
+
+    return res.status(200).json({ shops: resultsWithTimes });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.get("/nearest-all", validateAccessToken, async (req, res) => {
+  try {
+    const latitude = parseFloat(req.query.latitude);
+    const longitude = parseFloat(req.query.longitude);
+
+    if (!longitude || !latitude) {
+      return res
+        .status(400)
+        .json({ error: "Longitude and latitude are required" });
+    }
+
+    const shops = await Shop.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [longitude, latitude],
+          },
+          distanceField: "distance", // A valid field name to store the distance
+          spherical: true, // This calculates the distance in meters using a spherical model
+          minDistance: 0, // Or just omit this line to have unlimited distance
+        },
+      },
     ]);
     // Yürüyüş sürelerini hesapla
     const resultsWithTimes = shops.map((shop) => {
