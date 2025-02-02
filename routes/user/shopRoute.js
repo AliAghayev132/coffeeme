@@ -13,7 +13,6 @@ const shopController = require("../../controllers/user/shopController");
 
 
 // Favorite Shop
-
 router.get("/favorite", validateAccessToken, async (req, res) => {
   try {
     const { email } = req.user;
@@ -223,62 +222,62 @@ router.get("/search-recent", validateAccessToken, async (req, res) => {
       .json({ success: false, message: "Server error", error });
   }
 });
-router.get("/search/:query", validateAccessToken, async (req, res) => {
-  try {
-    const { query } = req.params;
-    if (query.length < 3) {
-      return res.status(400).json({
-        success: false,
-        message: "Query Length must be more than 3 chars",
-      });
-    }
+// router.get("/search/:query", validateAccessToken, async (req, res) => {
+//   try {
+//     const { query } = req.params;
+//     if (query.length < 3) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Query Length must be more than 3 chars",
+//       });
+//     }
 
-    // Perform a case-insensitive search for shops and products by name
-    const shops = await Shop.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { shortAddress: { $regex: query, $options: "i" } },
-      ], // Case-insensitive match
-    }).select(
-      "_id name rating address shortAddress logo photo discountPercentage"
-    );
+//     // Perform a case-insensitive search for shops and products by name
+//     const shops = await Shop.find({
+//       $or: [
+//         { name: { $regex: query, $options: "i" } },
+//         { shortAddress: { $regex: query, $options: "i" } },
+//       ], // Case-insensitive match
+//     }).select(
+//       "_id name rating address shortAddress logo photo discountPercentage"
+//     );
 
-    const products = await Product.find({
-      name: { $regex: query, $options: "i" }, // Case-insensitive match
-    })
-      .select("_id name photo rating sizes")
-      .populate({
-        path: "shop",
-        select: "name logo shortAddress", // Populate the shop details for products
-      });
+//     const products = await Product.find({
+//       name: { $regex: query, $options: "i" }, // Case-insensitive match
+//     })
+//       .select("_id name photo rating sizes")
+//       .populate({
+//         path: "shop",
+//         select: "name logo shortAddress", // Populate the shop details for products
+//       });
 
-    // Format the products to include shop details
+//     // Format the products to include shop details
 
-    const formattedProducts = products.map((product) => ({
-      _id: product._id,
-      name: product.name,
-      photo: product.photo,
-      rating: product.rating,
-      discount: product.sizes.length > 0 ? product.sizes[0].discount : 0, // Get discount from first size
-      discountedPrice:
-        product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
-      price: product.sizes.length > 0 ? product.sizes[0].price : 0,
-      shop: product.shop,
-    }));
+//     const formattedProducts = products.map((product) => ({
+//       _id: product._id,
+//       name: product.name,
+//       photo: product.photo,
+//       rating: product.rating,
+//       discount: product.sizes.length > 0 ? product.sizes[0].discount : 0, // Get discount from first size
+//       discountedPrice:
+//         product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
+//       price: product.sizes.length > 0 ? product.sizes[0].price : 0,
+//       shop: product.shop,
+//     }));
 
-    // Return both shops and products in the response
-    return res.status(200).json({
-      success: true,
-      shops,
-      products: formattedProducts,
-    });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error });
-  }
-});
+//     // Return both shops and products in the response
+//     return res.status(200).json({
+//       success: true,
+//       shops,
+//       products: formattedProducts,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Server error", error });
+//   }
+// });
 router.post("/search/remove", validateAccessToken, shopController.removeFromRecent);
 router.post("/search/clicked", validateAccessToken, async (req, res) => {
   try {
@@ -338,6 +337,82 @@ router.post("/search/clicked", validateAccessToken, async (req, res) => {
     });
   }
 });
+router.get("/search/:query", validateAccessToken, async (req, res) => {
+  try {
+    const { query } = req.params;
+
+    const shops = await Shop.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { shortAddress: { $regex: query, $options: "i" } },
+      ], // Case-insensitive match
+    }).select(
+      "_id name rating address shortAddress logo photo discountPercentage"
+    );
+
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" }, // Case-insensitive match
+    })
+      .select("_id name photo rating sizes")
+      .populate({
+        path: "shop",
+        select: "name logo shortAddress", // Populate the shop details for products
+      });
+
+    // Format the products to include shop details
+
+    const formattedProducts = products.map((product) => ({
+      _id: product._id,
+      name: product.name,
+      photo: product.photo,
+      rating: product.rating,
+      discount: product.sizes.length > 0 ? product.sizes[0].discount : 0, // Get discount from first size
+      discountedPrice:
+        product.sizes.length > 0 ? product.sizes[0].discountedPrice : 0,
+      price: product.sizes.length > 0 ? product.sizes[0].price : 0,
+      shop: product.shop,
+    }));
+
+    // Return both shops and products in the response
+    return res.status(200).json({
+      success: true,
+      shops,
+      products: formattedProducts,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error });
+  }
+});
+router.get("/search/byname/:query", validateAccessToken, async (req, res) => {
+  try {
+    const { query } = req.params;
+
+    const shops = await Shop.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { shortAddress: { $regex: query, $options: "i" } },
+      ],
+    }).select(
+      "_id name rating address shortAddress logo photo discountPercentage location"
+    );
+
+
+    return res.status(200).json({
+      success: true,
+      shops,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error });
+  }
+})
+
+
 
 // Favorite Product
 router.post("/favorite-product", validateAccessToken, async (req, res) => {
@@ -577,9 +652,9 @@ router.get("/nearest", validateAccessToken, async (req, res) => {
             type: "Point",
             coordinates: [longitude, latitude],
           },
-          distanceField: "distance", // A valid field name to store the distance
-          spherical: true, // This calculates the distance in meters using a spherical model
-          minDistance: 0, // Or just omit this line to have unlimited distance
+          distanceField: "distance", 
+          spherical: true, 
+          minDistance: 0,
         },
       },
       { $limit: 15 },

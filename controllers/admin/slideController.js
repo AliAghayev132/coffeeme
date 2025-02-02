@@ -44,23 +44,24 @@ const addNewSlide = async (req, res) => {
 
         const { title, description, navigateType, navigateTarget } = req.body;
 
-        if (!title || !description || !navigateType) {
+        if (!title || !navigateType) {
             return res.status(400).json({ message: "All fields are required", success: false });
         }
-        
+
 
         if (navigateType == "shop") {
             if (!navigateTarget) {
                 return res.status(400).json({ message: "navigateTarget field is required", success: false });
             }
+        } else if (!description) {
+            return res.status(400).json({ message: "All fields are required", success: false });
         }
 
-        
         const newSlide = await Slide.create({
             title,
             description,
             navigateType,
-            navigateTarget,
+            navigateTarget: navigateTarget ? navigateTarget : null,
             image: uploadedFile.name,
         });
 

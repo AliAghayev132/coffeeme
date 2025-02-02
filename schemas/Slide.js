@@ -8,6 +8,7 @@ const slideSchema = new Schema({
     },
     description: {
         type: String,
+        required: true,
     },
     navigateType: {
         type: String,
@@ -18,7 +19,7 @@ const slideSchema = new Schema({
         type: String,
         required: true,
     },
-    navigateTarget: { type: Schema.Types.ObjectId, ref: "Shop" }
+    navigateTarget: { type: Schema.Types.ObjectId, ref: "Shop", default: null }
 })
 
 const Slide = mongoose.model("Slide", slideSchema);
