@@ -41,6 +41,7 @@ router.post("/", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop, message } = req.body;
     const { email } = req.user;
 
+
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
@@ -57,7 +58,7 @@ router.post("/", validateAccessToken, async (req, res) => {
         .json({ message: "You have reached the order limit" });
     }
 
-    const shop = await Shop.findById(reqShop.id);
+    const shop = await Shop.findById(reqShop._id);
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
@@ -72,7 +73,7 @@ router.post("/", validateAccessToken, async (req, res) => {
       const product = products.find(
         (p) => p._id.toString() === item.productId.toString()
       );
-      if (!product || product.shop.toString() !== reqShop.id) {
+      if (!product || product.shop.toString() !== reqShop._id) {
         return false;
       }
 
@@ -239,7 +240,7 @@ router.post("/", validateAccessToken, async (req, res) => {
         };
       }),
       category,
-      shop: reqShop.id,
+      shop: reqShop._id,
       totalPrice,
       totalDiscountedPrice,
       message,
@@ -268,12 +269,12 @@ router.post("/", validateAccessToken, async (req, res) => {
       { $push: { orders: savedOrder._id } }
     );
     await Partner.findOneAndUpdate(
-      { shop: reqShop.id },
+      { shop: reqShop._id },
       { $push: { orders: savedOrder._id } }
     );
 
     // Notify partner if connected
-    const partner = await Partner.findOne({ shop: reqShop.id });
+    const partner = await Partner.findOne({ shop: reqShop._id });
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
       PARTNERS_CONNECTIONS[partner._id].send(
         JSON.stringify({
@@ -315,7 +316,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
         .json({ message: "You have reached the order limit" });
     }
 
-    const shop = await Shop.findById(reqShop.id);
+    const shop = await Shop.findById(reqShop._id);
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
@@ -324,7 +325,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       return res.status(404).json({ message: "Shop is not online" });
 
     const product = await Product.findById(orderedItem.productId); // Fetch single product
-    if (!product || product.shop.toString() !== reqShop.id) {
+    if (!product || product.shop.toString() !== reqShop._id) {
       return res.status(400).json({ message: "Invalid product or shop" });
     }
 
@@ -411,7 +412,7 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
           },
         },
       ],
-      shop: reqShop.id,
+      shop: reqShop._id,
       totalPrice,
       totalDiscountedPrice,
       message,
@@ -428,11 +429,11 @@ router.post("/loyalty", validateAccessToken, async (req, res) => {
       { $push: { orders: savedOrder._id } }
     );
     await Partner.findOneAndUpdate(
-      { shop: reqShop.id },
+      { shop: reqShop._id },
       { $push: { orders: savedOrder._id } }
     );
 
-    const partner = await Partner.findOne({ shop: reqShop.id });
+    const partner = await Partner.findOne({ shop: reqShop._id });
     if (partner && PARTNERS_CONNECTIONS[partner._id]) {
       PARTNERS_CONNECTIONS[partner._id].send(
         JSON.stringify({
@@ -457,6 +458,9 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
     const { orderedItems, shop: reqShop } = req.body;
     const { email } = req.user;
 
+    console.log(reqShop._id);
+    
+
     if (!orderedItems || orderedItems.length <= 0) {
       return res.status(400).json({ message: "No ordered items provided" });
     }
@@ -473,7 +477,8 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
         .json({ message: "You have reached the order limit" });
     }
 
-    const shop = await Shop.findById(reqShop.id);
+    const shop = await Shop.findById(reqShop._id);
+    
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }
@@ -489,7 +494,7 @@ router.post("/checkout", validateAccessToken, async (req, res) => {
         (p) => p._id.toString() === item.productId.toString()
       );
 
-      if (!product || product.shop.toString() !== reqShop.id) {
+      if (!product || product.shop.toString() !== reqShop._id) {
         return false;
       }
 
@@ -626,7 +631,7 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
         .json({ message: "You have reached the order limit" });
     }
 
-    const shop = await Shop.findById(reqShop.id);
+    const shop = await Shop.findById(reqShop._id);
     if (!shop) {
       return res
         .status(404)
@@ -640,7 +645,7 @@ router.post("/checkout-loyalty", validateAccessToken, async (req, res) => {
     const product = await Product.findById(productId);
 
     // Validate the product and size
-    if (!product || product.shop.toString() !== reqShop.id) {
+    if (!product || product.shop.toString() !== reqShop._id) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid product for this shop" });
