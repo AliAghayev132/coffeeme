@@ -4,12 +4,11 @@ const checkStreakDay = ({ streak }) => {
     const now = new Date();
 
     if (lastOrderDate) {
-      // Convert lastOrderDate to Date if it's a timestamp
       const lastOrderDateObj = new Date(lastOrderDate);
 
-      // Check if lastOrderDateObj is a valid date
+
       if (!isNaN(lastOrderDateObj.getTime())) {
-        // Extract year, month, and day for both dates
+
         const lastOrderYear = lastOrderDateObj.getFullYear();
         const lastOrderMonth = lastOrderDateObj.getMonth();
         const lastOrderDay = lastOrderDateObj.getDate();
@@ -18,7 +17,6 @@ const checkStreakDay = ({ streak }) => {
         const nowMonth = now.getMonth();
         const nowDay = now.getDate();
 
-        // Check if the current date is the next day from the last order date
         const isNextDay =
           nowYear === lastOrderYear &&
           nowMonth === lastOrderMonth &&
@@ -40,19 +38,25 @@ const checkStreak = ({ streak }) => {
     const now = new Date();
 
     if (lastOrderDate) {
-      // Convert lastOrderDate to Date if it's a timestamp
       const lastOrderDateObj = new Date(lastOrderDate);
+      
+      const getEndDate = (orderDate) => {
+        const orderDateObj = new Date(orderDate);
+        orderDateObj.setDate(orderDateObj.getDate() + 1); 
+        orderDateObj.setHours(23, 59, 59, 999); 
+        return orderDateObj;
+      };
 
-      // Check if lastOrderDateObj is a valid date
       if (!isNaN(lastOrderDateObj.getTime())) {
-        const differenceInHours = (now - lastOrderDateObj) / (1000 * 60 * 60);
-
-        // Check if the difference is within the last 24 hours
-        return differenceInHours <= 24;
+        const endDate = getEndDate(lastOrderDateObj);
+        
+        if (now <= endDate) {
+          return true; 
+        }
       }
     }
 
-    return false;
+    return false; 
   }
 
   return false;

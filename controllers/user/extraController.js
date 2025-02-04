@@ -223,7 +223,7 @@ const referAFriend = async (req, res) => {
     }
 
     const referrerUser = await User.findOne({
-      "extraDetails.referralCode": code, // Corrected field name
+      "extraDetails.referralCode": code,
     });
 
     if (!referrerUser) {
@@ -241,9 +241,12 @@ const referAFriend = async (req, res) => {
     const referral = new Referral({
       referredUserId: user._id,
       referrerUserId: referrerUser._id,
+      rewardGiven: false,
     });
 
     user.extraDetails.referredBy = referrerUser._id;
+    ++user.balance;
+
     await user.save();
     await referral.save();
 

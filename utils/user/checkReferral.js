@@ -14,7 +14,6 @@ const checkReferral = async (user) => {
         { new: true }
       ).populate("referrerUserId");
 
-      if (referral) user.balance += 1;
       if (referral.referrerUserId) {
         referral.referrerUserId.balance += 1;
       }
